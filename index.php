@@ -183,9 +183,9 @@
                     <button type="submit" class="btn btn-primary">
                       <i class="bi bi-search me-1"></i> ค้นหา
                     </button>
-                    <button type="button" id="test-data-btn" class="btn btn-secondary ms-2">
+                    <!-- <button type="button" id="test-data-btn" class="btn btn-secondary ms-2">
                       <i class="bi bi-database me-1"></i> ทดสอบข้อมูล
-                    </button>
+                    </button> -->
                   </div>
                 </div>
               </form>
