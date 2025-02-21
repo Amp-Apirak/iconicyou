@@ -1,0 +1,124 @@
+/* ==========================================
+ * CSS ส่วนเพิ่มเติมสำหรับ ICONIC YOU Dashboard
+ * ==========================================
+ */
+
+/* ซ่อนฟิลด์วันที่แบบกำหนดเองเริ่มต้น */
+.date-custom {
+    display: none;
+  }
+  
+  /* จัดรูปแบบ Loading Overlay */
+  #loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* สไตล์สำหรับกล่องข้อมูลสถิติ */
+  .stat-box {
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #0d6efd;
+  }
+  
+  .stat-title {
+    color: #6c757d;
+    font-size: 1rem;
+  }
+  
+  /* สไตล์สำหรับตัวเลือกเวลา */
+  .time-filter {
+    margin-top: 1rem;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+  }
+  
+  .time-filter-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .time-filter-btn {
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
+  
+  /* สไตล์สำหรับแถบช่วงเวลาที่ถูกเลือก */
+  .time-filter-btn.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  /* สไตล์สำหรับกราฟแท่ง */
+  #bar-chart {
+    min-height: 400px;
+    margin-top: 20px;
+  }
+  
+  /* แสดง realtime badge */
+  .realtime-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 2px 8px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.7;
+    }
+  }
+  
+  /* ปรับแต่งส่วนแสดงไม่พบข้อมูล */
+  .no-data {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    color: #6c757d;
+  }
+  
+  .no-data i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .no-data-text {
+    font-size: 1.2rem;
+  }

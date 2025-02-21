@@ -1,32 +1,33 @@
 <!doctype html>
 <html lang="th">
-
 <head>
   <meta charset="utf-8" />
   <title>ICONIC YOU | Dashboard</title>
   <!-- Meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="title" content="ICONIC YOU | Dashboard " />
-  <meta name="author" content="ICONIC YOU" />
+  <meta name="author" content="ColorlibHQ" />
   <meta name="description" content="ICONIC YOU | Dashboard" />
   <meta name="keywords" content="ICONIC YOU | Dashboard " />
 
   <!-- CSS: Bootstrap, Bootstrap Icons, AdminLTE, custom -->
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  />
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+  />
   <link rel="stylesheet" href="css/adminlte.css" />
   <link rel="stylesheet" href="css/custom.css" />
 
   <!-- ApexCharts -->
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css" />
+    href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
+  />
 </head>
-
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
   <div class="app-wrapper">
     <!-- Header -->
@@ -42,14 +43,14 @@
             <a href="#" class="nav-link">Dashboard</a>
           </li>
         </ul>
-
+        
         <!-- Header right items -->
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
             <div class="form-check form-switch mt-2">
-              <input class="form-check-input" type="checkbox" id="realtime-toggle" checked>
+              <input class="form-check-input" type="checkbox" id="realtime-toggle">
               <label class="form-check-label" for="realtime-toggle">Realtime</label>
-              <span id="realtime-status" class="badge bg-danger">LIVE</span>
+              <span id="realtime-status" class="badge bg-danger" style="display: none;">LIVE</span>
             </div>
           </li>
           <li class="nav-item">
@@ -60,7 +61,7 @@
         </ul>
       </div>
     </nav>
-
+    
     <!-- Sidebar -->
     <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
       <div class="sidebar-brand">
@@ -68,7 +69,8 @@
           <img
             src="assets/img/AdminLTELogo.png"
             alt="Logo"
-            class="brand-image opacity-75 shadow" />
+            class="brand-image opacity-75 shadow"
+          />
           <span class="brand-text fw-light">ICONIC YOU</span>
         </a>
       </div>
@@ -78,11 +80,30 @@
             class="nav sidebar-menu flex-column"
             data-lte-toggle="treeview"
             role="menu"
-            data-accordion="false">
+            data-accordion="false"
+          >
             <li class="nav-item">
-              <a href="index.php" class="nav-link active">
+              <a href="index.html" class="nav-link active">
                 <i class="nav-icon bi bi-speedometer"></i>
                 <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-camera-video"></i>
+                <p>กล้องทั้งหมด</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-file-earmark-text"></i>
+                <p>รายงาน</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-gear"></i>
+                <p>ตั้งค่า</p>
               </a>
             </li>
           </ul>
@@ -124,7 +145,8 @@
                 <button
                   type="button"
                   class="btn btn-tool"
-                  data-lte-toggle="card-collapse">
+                  data-lte-toggle="card-collapse"
+                >
                   <i class="bi bi-dash-lg"></i>
                 </button>
               </div>
@@ -183,9 +205,6 @@
                     <button type="submit" class="btn btn-primary">
                       <i class="bi bi-search me-1"></i> ค้นหา
                     </button>
-                    <button type="button" id="test-data-btn" class="btn btn-secondary ms-2">
-                      <i class="bi bi-database me-1"></i> ทดสอบข้อมูล
-                    </button>
                   </div>
                 </div>
               </form>
@@ -233,19 +252,19 @@
             <div class="col-md-6">
               <div class="card mb-4">
                 <div class="card-header">
-                  <h5 class="card-title">จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : </h5>
+                  <h5 class="card-title">กล้องตัวที่ 1</h5>
                 </div>
                 <div class="card-body chart-container">
                   <!-- horizontal-bar-chart-1-->
                   <div id="horizontal-bar-chart-1" style="min-height: 400px;"></div>
-
+                  
                 </div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="card mb-4">
                 <div class="card-header">
-                  <h5 class="card-title">จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : </h5>
+                  <h5 class="card-title">กล้องตัวที่ 2</h5>
                 </div>
                 <div class="card-body chart-container">
                   <!-- horizontal-bar-chart-2 -->
@@ -259,7 +278,7 @@
             <div class="col-md-6">
               <div class="card mb-4">
                 <div class="card-header">
-                  <h5 class="card-title">จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : </h5>
+                  <h5 class="card-title">กล้องตัวที่ 3</h5>
                 </div>
                 <div class="card-body chart-container">
                   <!-- horizontal-bar-chart-3 -->
@@ -270,7 +289,7 @@
             <div class="col-md-6">
               <div class="card mb-4">
                 <div class="card-header">
-                  <h5 class="card-title">จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : </h5>
+                  <h5 class="card-title">กล้องตัวที่ 4</h5>
                 </div>
                 <div class="card-body chart-container">
                   <!-- horizontal-bar-chart-4 -->
@@ -305,6 +324,7 @@
             </div>
           </div>
 
+
         </div> <!-- container-fluid -->
       </div> <!-- app-content -->
     </main>
@@ -324,11 +344,12 @@
 
   <!-- JS: Bootstrap, ApexCharts, AdminLTE, index.js -->
   <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  ></script>
   <script
-    src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+    src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
+  ></script>
   <script src="js/adminlte.js"></script>
   <script src="js/index.js"></script>
 </body>
-
 </html>
