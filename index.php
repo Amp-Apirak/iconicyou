@@ -24,8 +24,6 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="css/adminlte.css" />
   <link rel="stylesheet" href="css/custom.css" />
-
-  <!-- นำเข้า CSS เพิ่มเติม -->
   <link rel="stylesheet" href="css/dashboard-styles.css" />
 
   <!-- ApexCharts -->
@@ -101,25 +99,6 @@
                 <p>Dashboard</p>
               </a>
             </li>
-            <!-- เพิ่มเมนูใหม่ -->
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-camera-video"></i>
-                <p>จัดการกล้อง</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-file-earmark-bar-graph"></i>
-                <p>รายงาน</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-gear"></i>
-                <p>ตั้งค่า</p>
-              </a>
-            </li>
           </ul>
         </nav>
       </div>
@@ -185,7 +164,8 @@
                   <div class="col-md-4">
                     <div class="form-group mb-3">
                       <label><i class="bi bi-camera me-1"></i> กล้อง</label>
-                      <select class="form-control" name="source_name" id="source_name">
+                      <!-- <select class="form-control" name="source_name" id="source_name"> -->
+                      <select class="form-control" name="source_name">
                         <option value="">ทั้งหมด</option>
                       </select>
                     </div>
@@ -477,9 +457,40 @@
 
   <!-- เพิ่มโค้ด JavaScript สำหรับปุ่มเพิ่มเติม -->
   <script>
-    // เพิ่มเหตุการณ์ (event) สำหรับปุ่มดาวน์โหลดและตัวเลือกอื่นๆ ในทุกกราฟ
     document.addEventListener('DOMContentLoaded', function() {
-      // เพิ่มเหตุการณ์ให้กับทุกปุ่มและรายการเมนูที่มีคลาส 'download-chart'
+      // 1. ผูก event listener สำหรับปุ่มรีเซ็ต (reset-btn)
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // รีเซ็ตฟอร์มค้นหา (ฟอร์มที่มี id="search-form")
+          const searchForm = document.getElementById('search-form');
+          if (searchForm) {
+            searchForm.reset();
+            showToast('รีเซ็ตฟอร์มแล้ว', 'success');
+          }
+        });
+      }
+
+      // 2. ผูก event listener สำหรับปุ่มรีเฟรชข้อมูล (refresh-btn)
+      const refreshBtn = document.getElementById('refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // ตรวจสอบว่ามีฟังก์ชัน loadData() สำหรับดึงข้อมูลใหม่หรือไม่
+          if (typeof loadData === 'function') {
+            loadData().then(function() {
+              showToast('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+            }).catch(function(error) {
+              showToast('ไม่สามารถรีเฟรชข้อมูลได้', 'error');
+            });
+          } else {
+            showToast('ไม่มีฟังก์ชันรีเฟรชข้อมูล', 'error');
+          }
+        });
+      }
+
+      // 3. ผูก event ให้กับปุ่มและรายการเมนูที่มีคลาส 'dropdown-item' หรือ 'button' (สำหรับดาวน์โหลดและรีเฟรชในแต่ละกราฟ)
       document.querySelectorAll('.dropdown-item, button').forEach(element => {
         // ปุ่มดาวน์โหลด
         if (element.innerHTML.includes('ดาวน์โหลด') || element.id === 'download-chart') {
@@ -498,7 +509,7 @@
             const chartId = chartContainer.querySelector('div[id]')?.id;
             if (!chartId) return;
 
-            // หา chart object จากตัวแปรที่กำหนดไว้
+            // หา chart object จากตัวแปรที่กำหนดไว้ (ปรับตามที่โปรเจคของคุณกำหนด)
             let chartObj;
             if (chartId === 'bar-chart') {
               chartObj = barChart;
@@ -534,7 +545,7 @@
           });
         }
 
-        // ปุ่มรีเฟรช
+        // ปุ่มรีเฟรชในแต่ละกราฟ (ยกเว้นปุ่ม refresh-btn และ refresh-chart)
         if (element.innerHTML.includes('รีเฟรช') && element.id !== 'refresh-btn' && element.id !== 'refresh-chart') {
           element.addEventListener('click', function(e) {
             e.preventDefault();
@@ -551,7 +562,7 @@
             const chartId = chartContainer.querySelector('div[id]')?.id;
             if (!chartId) return;
 
-            // ถ้ามีข้อมูลปัจจุบัน
+            // ถ้ามีข้อมูลปัจจุบันในตัวแปร currentData ให้ใช้ฟังก์ชัน update สำหรับแต่ละกราฟ
             if (currentData && currentData.length > 0) {
               if (chartId === 'bar-chart') {
                 updateBarChart(currentData);
@@ -562,7 +573,6 @@
               } else if (chartId.includes('horizontal-bar-chart')) {
                 updateHorizontalBarCharts(currentData);
               }
-
               showToast('รีเฟรชกราฟเรียบร้อยแล้ว', 'success');
             } else {
               // ถ้าไม่มีข้อมูล ให้โหลดใหม่
@@ -573,7 +583,7 @@
           });
         }
 
-        // ตัวเลือกอื่นๆ
+        // ตัวเลือกอื่นๆ สำหรับ 'รายวัน' หรือ 'รายสัปดาห์'
         if (element.innerHTML.includes('รายวัน') || element.innerHTML.includes('รายสัปดาห์')) {
           element.addEventListener('click', function(e) {
             e.preventDefault();
@@ -581,6 +591,7 @@
           });
         }
 
+        // ตัวเลือกอื่นๆ สำหรับ 'กราฟแท่ง' หรือ 'กราฟวงกลม'
         if (element.innerHTML.includes('กราฟแท่ง') || element.innerHTML.includes('กราฟวงกลม')) {
           element.addEventListener('click', function(e) {
             e.preventDefault();
@@ -591,12 +602,12 @@
     });
 
     /**
-     * แสดงข้อความแจ้งเตือน (Toast)
+     * ฟังก์ชันแสดงข้อความแจ้งเตือน (Toast)
      * @param {string} message - ข้อความที่ต้องการแสดง
      * @param {string} type - ประเภทของข้อความ (success, info, warning, error)
      */
     function showToast(message, type = 'info') {
-      // ถ้ามี toast container แล้ว ให้ลบออก
+      // ถ้ามี toast container แล้ว ให้ใช้ container เดิม
       let toastContainer = document.getElementById('toast-container');
       if (!toastContainer) {
         // สร้าง toast container
@@ -609,7 +620,7 @@
         document.body.appendChild(toastContainer);
       }
 
-      // กำหนดสี toast ตามประเภท
+      // กำหนดสีและไอคอนสำหรับ Toast ตามประเภท
       let bgColor = 'bg-info';
       let icon = 'bi-info-circle';
 
@@ -628,46 +639,44 @@
           break;
       }
 
-      // สร้าง toast element
+      // สร้าง Toast element
       const toast = document.createElement('div');
       toast.className = `toast align-items-center text-white ${bgColor} border-0 mb-2`;
       toast.setAttribute('role', 'alert');
       toast.setAttribute('aria-live', 'assertive');
       toast.setAttribute('aria-atomic', 'true');
 
-      // กำหนดเนื้อหาของ toast
+      // กำหนดเนื้อหาของ Toast
       toast.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">
-            <i class="bi ${icon} me-2"></i> ${message}
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi ${icon} me-2"></i> ${message}
         </div>
-      `;
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
 
-      // เพิ่ม toast ลงใน container
+      // เพิ่ม Toast ลงใน container และแสดง Toast ด้วย Bootstrap
       toastContainer.appendChild(toast);
-
-      // สร้าง Bootstrap toast instance และแสดง
       const bsToast = new bootstrap.Toast(toast, {
         autohide: true,
         delay: 3000
       });
       bsToast.show();
 
-      // ลบ toast หลังจากซ่อน
+      // ลบ Toast ออกจาก container เมื่อ Toast ถูกซ่อนไปแล้ว
       toast.addEventListener('hidden.bs.toast', function() {
         if (toastContainer.contains(toast)) {
           toastContainer.removeChild(toast);
         }
-
-        // ลบ container ถ้าไม่มี toast อยู่แล้ว
+        // ลบ container ถ้าไม่มี Toast อยู่แล้ว
         if (toastContainer.children.length === 0) {
           document.body.removeChild(toastContainer);
         }
       });
     }
   </script>
+
 
 
 </body>
