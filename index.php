@@ -256,9 +256,9 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="download-chart">
                       <i class="bi bi-download me-1"></i> ดาวน์โหลด
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
+                    <!-- <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
                       <i class="bi bi-arrow-repeat me-1"></i> รีเฟรช
-                    </button>
+                    </button> -->
                   </div>
                 </div>
                 <div class="card-body chart-container">
