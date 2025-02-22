@@ -26,7 +26,7 @@ let currentData = [];
 let currentSearchParams = null;
 
 // ตัวแปรควบคุมการแสดง debug
-const SHOW_DEBUG = true;
+const SHOW_DEBUG = false;
 
 /**
  * ----------------------------------------------------------------
@@ -669,6 +669,7 @@ function updateTimeSeriesChart(data) {
 function updatePieChart(data) {
   debug("อัปเดตกราฟวงกลม Pie Chart");
 
+  // รวบรวมข้อมูลตามกล้อง
   const cameraData = {};
   data.forEach((item) => {
     const cam = item?.data?.sourceName || "ไม่ระบุ";
@@ -676,8 +677,32 @@ function updatePieChart(data) {
     cameraData[cam] = (cameraData[cam] || 0) + cnt;
   });
 
-  const series = Object.values(cameraData);
-  const labels = Object.keys(cameraData);
+  // ลำดับกล้องเดียวกับที่ใช้ในกราฟแท่งแนวนอน
+  const cameraOrder = ["ICONIC-01", "ICONIC-02", "ICONIC-03", "ICONIC-04"];
+
+  // เรียงลำดับ keys (ชื่อกล้อง) ตามลำดับที่กำหนด เพื่อให้สอดคล้องกับกราฟอื่นๆ
+  const sortedLabels = Object.keys(cameraData).sort((a, b) => {
+    const indexA = cameraOrder.indexOf(a);
+    const indexB = cameraOrder.indexOf(b);
+
+    // ถ้าไม่เจอในลำดับที่กำหนด ให้ไปต่อท้าย
+    const orderA = indexA === -1 ? 999 : indexA;
+    const orderB = indexB === -1 ? 999 : indexB;
+
+    return orderA - orderB;
+  });
+
+  // สร้าง series (ข้อมูลจำนวน) ตามลำดับชื่อกล้องที่เรียงแล้ว
+  const series = sortedLabels.map((label) => cameraData[label]);
+  // ใช้ sortedLabels เป็นชื่อสำหรับกราฟวงกลม
+  const labels = sortedLabels;
+
+  // สร้าง array ของสีตามชื่อกล้อง - เพื่อให้แน่ใจว่ามีการใช้สีที่ถูกต้อง
+  const colorArray = labels.map((camera) => getCameraColor(camera));
+
+  // เพิ่มดีบั๊กเพื่อตรวจสอบ
+  // debug("Labels ของกราฟวงกลม:", labels);
+  // debug("สีที่ใช้ในกราฟวงกลม:", colorArray);
 
   const options = {
     series,
@@ -689,18 +714,8 @@ function updatePieChart(data) {
       },
     },
     labels,
-    colors: [
-      "#0d6efd",
-      "#20c997",
-      "#ffc107",
-      "#dc3545",
-      "#6610f2",
-      "#fd7e14",
-      "#0dcaf0",
-      "#198754",
-      "#6c757d",
-      "#d63384",
-    ],
+    // ใช้ colorArray ที่สร้างจาก getCameraColor เพื่อให้สีตรงกับกราฟแท่ง
+    colors: colorArray,
     legend: {
       position: "bottom",
       horizontalAlign: "center",
@@ -749,15 +764,277 @@ function updatePieChart(data) {
   }
 
   try {
+    // สร้างกราฟใหม่ทุกครั้งแทนการอัปเดต เพื่อแก้ปัญหาสีไม่อัปเดต
     if (cameraPieChart) {
-      cameraPieChart.updateOptions(options);
-    } else {
-      debug("สร้างกราฟวงกลมใหม่");
-      cameraPieChart = new ApexCharts(pieEl, options);
-      cameraPieChart.render();
+      // ลบกราฟเดิมก่อน
+      cameraPieChart.destroy();
+      cameraPieChart = null;
     }
+
+    debug("สร้างกราฟวงกลมใหม่");
+    cameraPieChart = new ApexCharts(pieEl, options);
+    cameraPieChart.render();
   } catch (error) {
     console.error("Error updating pie chart:", error);
+  }
+}
+
+// ==========================================
+// ส่วนฟังก์ชันอัปเดตกราฟแท่งแนวนอน (Horizontal Bar Charts)
+// ==========================================
+function updateHorizontalBarCharts(data) {
+  debug("อัปเดตกราฟแท่งแนวนอน (ใช้ข้อมูลจาก API เท่านั้น)");
+
+  // 1) เก็บชื่อกล้องทั้งหมดที่พบ
+  const cameraSet = new Set();
+  data.forEach((item) => {
+    if (item?.data?.sourceName) {
+      cameraSet.add(item.data.sourceName);
+    }
+  });
+
+  // 2) แปลงเป็น array
+  let cameras = Array.from(cameraSet);
+
+  // 3) กำหนดลำดับกล้องที่ต้องการให้แสดง
+  const cameraOrder = ["ICONIC-01", "ICONIC-02", "ICONIC-03", "ICONIC-04"];
+
+  // 4) เรียง array cameras ตามลำดับใน cameraOrder
+  cameras.sort((a, b) => {
+    const indexA = cameraOrder.indexOf(a);
+    const indexB = cameraOrder.indexOf(b);
+
+    // ถ้าไม่เจอใน cameraOrder ให้ส่งค่ามากกว่า 4 เพื่อให้อยู่ท้าย ๆ
+    const orderA = indexA === -1 ? 999 : indexA;
+    const orderB = indexB === -1 ? 999 : indexB;
+
+    return orderA - orderB;
+  });
+
+  // 5) ตรวจสอบว่ามีข้อมูลกล้องหรือไม่
+  if (cameras.length === 0) {
+    debug("ไม่พบข้อมูลกล้อง");
+    // ถ้าไม่พบ ให้ล้างข้อมูลในกราฟทั้ง 4 การ์ด
+    horizontalBarCharts.forEach((chart, index) => {
+      if (chart) {
+        chart.updateOptions({
+          series: [{ data: [] }],
+          xaxis: { categories: [] },
+        });
+        const containerId = `#horizontal-bar-chart-${index + 1}`;
+        const chartEl = document.querySelector(containerId);
+        if (chartEl) {
+          if (!chartEl.querySelector(".no-data")) {
+            const noDataDiv = document.createElement("div");
+            noDataDiv.className = "no-data";
+            noDataDiv.innerHTML = `
+              <i class="bi bi-exclamation-triangle"></i>
+              <div class="no-data-text">ไม่พบข้อมูลกล้อง</div>
+            `;
+            chartEl.appendChild(noDataDiv);
+          }
+        }
+      }
+    });
+    return;
+  }
+
+  // 6) กำหนดช่วงเวลา (timeRanges) ตามเดิม
+  const timeRanges = [
+    "00:00 - 03:00",
+    "03:00 - 06:00",
+    "06:00 - 09:00",
+    "09:00 - 12:00",
+    "12:00 - 15:00",
+    "15:00 - 18:00",
+    "18:00 - 21:00",
+    "21:00 - 00:00",
+  ];
+
+  const timeRangeHours = timeRanges.map((range) => {
+    const [start, end] = range.split(" - ");
+    const startHour = parseInt(start.split(":")[0]);
+    const endHour = parseInt(end.split(":")[0]);
+    return { startHour, endHour };
+  });
+
+  // 7) จำกัดให้แสดงเฉพาะ 4 กล้องแรก (ตามลำดับ cameraOrder)
+  const cameraLimit = Math.min(cameras.length, 4);
+
+  // 8) วนลูปตามจำนวนการ์ดที่ต้องการ (สูงสุด 4 การ์ด)
+  for (let index = 0; index < cameraLimit; index++) {
+    const cam = cameras[index]; // กล้องตัวที่ index
+    const seriesData = Array(timeRanges.length).fill(0);
+    const cameraData = data.filter((item) => item?.data?.sourceName === cam);
+
+    // ประมวลผลข้อมูลตามช่วงเวลา
+    cameraData.forEach((item) => {
+      if (item?.time && item?.data?.analyticsResult?.cnt) {
+        const time = new Date(item.time);
+        const hour = time.getHours();
+        const count = item.data.analyticsResult.cnt;
+
+        // หา timeRanges ที่ hour ตรงกับช่วงไหน แล้วบวก count
+        for (let i = 0; i < timeRangeHours.length; i++) {
+          const { startHour, endHour } = timeRangeHours[i];
+          if (
+            (startHour < endHour && hour >= startHour && hour < endHour) ||
+            (startHour > endHour && (hour >= startHour || hour < endHour))
+          ) {
+            seriesData[i] += count;
+            break;
+          }
+        }
+      }
+    });
+
+    // ตั้งค่า options สำหรับกราฟแท่งแนวนอน
+    const options = {
+      series: [
+        {
+          name: "จำนวนคน",
+          data: seriesData,
+        },
+      ],
+      chart: {
+        type: "bar",
+        height: 350,
+        toolbar: {
+          show: true,
+        },
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          dataLabels: {
+            position: "right",
+          },
+          barHeight: "75%",
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        textAnchor: "start",
+        style: {
+          colors: ["#000"],
+        },
+        formatter: function (val) {
+          return val;
+        },
+        offsetX: 0,
+      },
+      xaxis: {
+        categories: timeRanges,
+        title: {
+          text: "จำนวนคน",
+        },
+      },
+      yaxis: {
+        labels: {
+          show: true,
+          style: {
+            fontSize: "12px",
+          },
+        },
+        title: {
+          text: "ช่วงเวลา",
+        },
+      },
+      title: {
+        text: `จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : ${cam}`,
+        align: "center",
+      },
+      tooltip: {
+        shared: false,
+        x: {
+          formatter: function (val) {
+            return val;
+          },
+        },
+        y: {
+          formatter: function (val) {
+            return val + " คน";
+          },
+        },
+      },
+      // แก้ไขส่วนนี้ให้ใช้สีเดียวกับที่กำหนดในแผนที่สี
+      colors: [getCameraColor(cam)], // ใช้สีตาม cameraColorMap
+      noData: {
+        text: "ไม่พบข้อมูล",
+        align: "center",
+        verticalAlign: "middle",
+        offsetX: 0,
+        offsetY: 0,
+      },
+    };
+
+    // เลือก container ของการ์ดใบที่ index + 1
+    const containerId = `#horizontal-bar-chart-${index + 1}`;
+    const chartEl = document.querySelector(containerId);
+
+    // ลบข้อความ "ไม่พบข้อมูล" เดิม (ถ้ามี)
+    const noDataEl = chartEl?.querySelector(".no-data");
+    if (noDataEl) {
+      noDataEl.remove();
+    }
+
+    // อัปเดตหัวข้อการ์ด
+    const cardHeader = chartEl
+      ?.closest(".card")
+      ?.querySelector(".card-header .card-title");
+    if (cardHeader) {
+      cardHeader.textContent = `จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : ${cam}`;
+    }
+
+    if (!chartEl) {
+      debug(`ไม่พบ element ${containerId}`);
+      continue;
+    }
+
+    try {
+      // สร้างกราฟใหม่ทุกครั้งแทนการอัปเดต เพื่อแก้ปัญหาสีไม่อัปเดต
+      if (horizontalBarCharts[index]) {
+        horizontalBarCharts[index].destroy();
+        horizontalBarCharts[index] = null;
+      }
+
+      debug(`สร้างกราฟแท่งแนวนอนใหม่ ${index + 1}`);
+      horizontalBarCharts[index] = new ApexCharts(chartEl, options);
+      horizontalBarCharts[index].render();
+    } catch (error) {
+      console.error(`Error updating horizontal bar chart ${index + 1}:`, error);
+    }
+  }
+
+  // 9) ถ้ามีการ์ดเหลือ (เช่น กล้องน้อยกว่า 4 ตัว) ให้ลบกราฟ/ใส่ข้อความว่าไม่พบข้อมูล
+  for (let i = cameraLimit; i < 4; i++) {
+    if (horizontalBarCharts[i]) {
+      const containerId = `#horizontal-bar-chart-${i + 1}`;
+      const chartEl = document.querySelector(containerId);
+
+      if (chartEl) {
+        horizontalBarCharts[i].updateOptions({
+          series: [{ data: [] }],
+        });
+
+        if (!chartEl.querySelector(".no-data")) {
+          const noDataDiv = document.createElement("div");
+          noDataDiv.className = "no-data";
+          noDataDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i>
+            <div class="no-data-text">ไม่พบข้อมูลกล้อง</div>
+          `;
+          chartEl.appendChild(noDataDiv);
+        }
+
+        const cardHeader = chartEl
+          .closest(".card")
+          ?.querySelector(".card-header .card-title");
+        if (cardHeader) {
+          cardHeader.textContent = `จำนวนนับบุคคลตามช่วงเวลาจากกล้อง : ไม่พบข้อมูล`;
+        }
+      }
+    }
   }
 }
 
@@ -1184,14 +1461,11 @@ function updateHorizontalBarCharts(data) {
   }
 }
 
-
-
 // ==========================================
 // ส่วนการทำงานเมื่อหน้าเว็บโหลดเสร็จ (DOMContentLoaded)
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  debug("หน้าเว็บโหลดเสร็จสมบูรณ์");
 
   const form = document.getElementById("search-form");
   const dateRangeSelect = document.getElementById("date_range");
