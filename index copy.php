@@ -40,9 +40,73 @@
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
   <div class="app-wrapper">
     <!-- Header -->
-    <?php include 'layout/header.php'; ?>
+    <nav class="app-header navbar navbar-expand bg-body shadow-sm">
+      <div class="container-fluid">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+              <i class="bi bi-list"></i>
+            </a>
+          </li>
+          <li class="nav-item d-none d-md-block">
+            <a href="#" class="nav-link">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </li>
+        </ul>
+
+        <!-- Header right items -->
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <div class="form-check form-switch mt-2 d-flex align-items-center">
+              <input class="form-check-input me-2" type="checkbox" id="realtime-toggle" checked>
+              <label class="form-check-label me-2" for="realtime-toggle">Realtime</label>
+              <span id="realtime-status" class="badge bg-danger">LIVE</span>
+            </div>
+          </li>
+          <li class="nav-item border-start ms-3 ps-3">
+            <span class="nav-link d-flex align-items-center">
+              <i class="bi bi-clock-history me-2"></i>
+              อัปเดตล่าสุด: <span id="last-updated-time" class="ms-1 fw-semibold">-</span>
+            </span>
+          </li>
+          <li class="nav-item ms-2">
+            <button id="refresh-btn" class="btn btn-sm btn-outline-primary rounded-circle" title="รีเฟรชข้อมูล">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
     <!-- Sidebar -->
-    <?php include 'layout/sidebar.php'; ?>
+    <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+      <div class="sidebar-brand">
+        <a href="#" class="brand-link">
+          <img
+            src="assets/img/AdminLTELogo.png"
+            alt="Logo"
+            class="brand-image opacity-75 shadow" />
+          <span class="brand-text fw-light">ICONIC YOU</span>
+        </a>
+      </div>
+      <div class="sidebar-wrapper">
+        <nav class="mt-2">
+          <ul
+            class="nav sidebar-menu flex-column"
+            data-lte-toggle="treeview"
+            role="menu"
+            data-accordion="false">
+            <li class="nav-item">
+              <a href="index.php" class="nav-link active">
+                <i class="nav-icon bi bi-speedometer2"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
 
     <!-- Main Content -->
     <main class="app-main">
@@ -288,6 +352,8 @@
             </div>
           </div>
 
+
+
           <div class="row">
             <div class="col-md-6">
               <div class="card mb-4">
@@ -443,32 +509,310 @@
       </div> <!-- app-content -->
     </main>
 
-    <?php
-    // โหลดส่วน Footer
-    include 'layout/footer.php';
-    ?>
-
-    <!-- Loading Overlay - ปรับปรุงใหม่ให้สวยงามขึ้น -->
-    <div id="loading-overlay" style="display: none;">
-      <div class="spinner-wrapper">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-          <span class="visually-hidden">กำลังโหลด...</span>
-        </div>
-        <div class="loading-text">กำลังโหลดข้อมูล...</div>
+    <!-- Footer -->
+    <footer class="app-footer border-top py-3">
+      <div class="float-end d-none d-sm-inline">
+        <strong>Version</strong> 1.0.0
       </div>
-    </div>
+      <strong>
+        Copyright &copy; 2024
+        <a href="#" class="text-decoration-none">ICONIC YOU</a>.
+      </strong>
+      All rights reserved.
+    </footer>
+  </div>
 
-    <!-- JS: Bootstrap, ApexCharts, AdminLTE, index.js -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
-    <script src="js/adminlte.js"></script>
-    <script src="js/index.js"></script>
-    <script src="js/toast.js"></script>
-    <script src="js/modal.js"></script>
-    <script src="js/form-handler.js"></script>
-    <script src="js/main.js"></script>
+  <!-- Loading Overlay - ปรับปรุงใหม่ให้สวยงามขึ้น -->
+  <div id="loading-overlay" style="display: none;">
+    <div class="spinner-wrapper">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">กำลังโหลด...</span>
+      </div>
+      <div class="loading-text">กำลังโหลดข้อมูล...</div>
+    </div>
+  </div>
+
+  <!-- JS: Bootstrap, ApexCharts, AdminLTE, index.js -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+  <script src="js/adminlte.js"></script>
+  <script src="js/index.js"></script>
+
+  <!-- เพิ่มโค้ด JavaScript สำหรับปุ่มเพิ่มเติม -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. ผูก event listener สำหรับปุ่มรีเซ็ต (reset-btn)
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // รีเซ็ตฟอร์มค้นหา (ฟอร์มที่มี id="search-form")
+          const searchForm = document.getElementById('search-form');
+          if (searchForm) {
+            searchForm.reset();
+            showToast('รีเซ็ตฟอร์มแล้ว', 'success');
+          }
+        });
+      }
+
+      // 2. ผูก event listener สำหรับปุ่มรีเฟรชข้อมูล (refresh-btn)
+      const refreshBtn = document.getElementById('refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // ตรวจสอบว่ามีฟังก์ชัน loadData() สำหรับดึงข้อมูลใหม่หรือไม่
+          if (typeof loadData === 'function') {
+            loadData().then(function() {
+              showToast('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+            }).catch(function(error) {
+              showToast('ไม่สามารถรีเฟรชข้อมูลได้', 'error');
+            });
+          } else {
+            showToast('ไม่มีฟังก์ชันรีเฟรชข้อมูล', 'error');
+          }
+        });
+      }
+
+      // 3. ผูก event ให้กับปุ่มและรายการเมนูที่มีคลาส 'dropdown-item' หรือ 'button' (สำหรับดาวน์โหลดและรีเฟรชในแต่ละกราฟ)
+      document.querySelectorAll('.dropdown-item, button').forEach(element => {
+        // ปุ่มดาวน์โหลด
+        if (element.innerHTML.includes('ดาวน์โหลด') || element.id === 'download-chart') {
+          element.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // หาว่าอยู่ในการ์ดไหน
+            const card = this.closest('.card');
+            if (!card) return;
+
+            // หา chart container
+            const chartContainer = card.querySelector('.chart-container');
+            if (!chartContainer) return;
+
+            // หา chart ID
+            const chartId = chartContainer.querySelector('div[id]')?.id;
+            if (!chartId) return;
+
+            // หา chart object จากตัวแปรที่กำหนดไว้ (ปรับตามที่โปรเจคของคุณกำหนด)
+            let chartObj;
+            if (chartId === 'bar-chart') {
+              chartObj = barChart;
+            } else if (chartId === 'time-series-chart') {
+              chartObj = timeSeriesChart;
+            } else if (chartId === 'camera-pie-chart') {
+              chartObj = cameraPieChart;
+            } else if (chartId.includes('horizontal-bar-chart')) {
+              const index = chartId.split('-').pop() - 1;
+              chartObj = horizontalBarCharts[index];
+            }
+
+            // ถ้าพบกราฟ ให้ดาวน์โหลด
+            if (chartObj) {
+              chartObj.dataURI().then(({
+                imgURI
+              }) => {
+                // สร้าง link สำหรับดาวน์โหลด
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imgURI;
+                downloadLink.download = `${chartId}.png`;
+
+                // เพิ่ม link ลงใน DOM, คลิกและลบออก
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                showToast('ดาวน์โหลดกราฟเรียบร้อยแล้ว', 'success');
+              });
+            } else {
+              showToast('ไม่สามารถดาวน์โหลดกราฟได้', 'error');
+            }
+          });
+        }
+
+        // ปุ่มรีเฟรชในแต่ละกราฟ (ยกเว้นปุ่ม refresh-btn และ refresh-chart)
+        if (element.innerHTML.includes('รีเฟรช') && element.id !== 'refresh-btn' && element.id !== 'refresh-chart') {
+          element.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // หาว่าอยู่ในการ์ดไหน
+            const card = this.closest('.card');
+            if (!card) return;
+
+            // หา chart container
+            const chartContainer = card.querySelector('.chart-container');
+            if (!chartContainer) return;
+
+            // หา chart ID
+            const chartId = chartContainer.querySelector('div[id]')?.id;
+            if (!chartId) return;
+
+            // ถ้ามีข้อมูลปัจจุบันในตัวแปร currentData ให้ใช้ฟังก์ชัน update สำหรับแต่ละกราฟ
+            if (currentData && currentData.length > 0) {
+              if (chartId === 'bar-chart') {
+                updateBarChart(currentData);
+              } else if (chartId === 'time-series-chart') {
+                updateTimeSeriesChart(currentData);
+              } else if (chartId === 'camera-pie-chart') {
+                updatePieChart(currentData);
+              } else if (chartId.includes('horizontal-bar-chart')) {
+                updateHorizontalBarCharts(currentData);
+              }
+              showToast('รีเฟรชกราฟเรียบร้อยแล้ว', 'success');
+            } else {
+              // ถ้าไม่มีข้อมูล ให้โหลดใหม่
+              loadData().then(() => {
+                showToast('รีเฟรชกราฟเรียบร้อยแล้ว', 'success');
+              });
+            }
+          });
+        }
+
+        // ตัวเลือกอื่นๆ สำหรับ 'รายวัน' หรือ 'รายสัปดาห์'
+        if (element.innerHTML.includes('รายวัน') || element.innerHTML.includes('รายสัปดาห์')) {
+          element.addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('กำลังพัฒนาฟีเจอร์นี้', 'info');
+          });
+        }
+
+        // ตัวเลือกอื่นๆ สำหรับ 'กราฟแท่ง' หรือ 'กราฟวงกลม'
+        if (element.innerHTML.includes('กราฟแท่ง') || element.innerHTML.includes('กราฟวงกลม')) {
+          element.addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('กำลังพัฒนาฟีเจอร์นี้', 'info');
+          });
+        }
+      });
+    });
+
+    /**
+     * ฟังก์ชันแสดงข้อความแจ้งเตือน (Toast)
+     * @param {string} message - ข้อความที่ต้องการแสดง
+     * @param {string} type - ประเภทของข้อความ (success, info, warning, error)
+     */
+    function showToast(message, type = 'info') {
+      // ถ้ามี toast container แล้ว ให้ใช้ container เดิม
+      let toastContainer = document.getElementById('toast-container');
+      if (!toastContainer) {
+        // สร้าง toast container
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+      }
+
+      // กำหนดสีและไอคอนสำหรับ Toast ตามประเภท
+      let bgColor = 'bg-info';
+      let icon = 'bi-info-circle';
+
+      switch (type) {
+        case 'success':
+          bgColor = 'bg-success';
+          icon = 'bi-check-circle';
+          break;
+        case 'warning':
+          bgColor = 'bg-warning';
+          icon = 'bi-exclamation-triangle';
+          break;
+        case 'error':
+          bgColor = 'bg-danger';
+          icon = 'bi-x-circle';
+          break;
+      }
+
+      // สร้าง Toast element
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white ${bgColor} border-0 mb-2`;
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+
+      // กำหนดเนื้อหาของ Toast
+      toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi ${icon} me-2"></i> ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+
+      // เพิ่ม Toast ลงใน container และแสดง Toast ด้วย Bootstrap
+      toastContainer.appendChild(toast);
+      const bsToast = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: 3000
+      });
+      bsToast.show();
+
+      // ลบ Toast ออกจาก container เมื่อ Toast ถูกซ่อนไปแล้ว
+      toast.addEventListener('hidden.bs.toast', function() {
+        if (toastContainer.contains(toast)) {
+          toastContainer.removeChild(toast);
+        }
+        // ลบ container ถ้าไม่มี Toast อยู่แล้ว
+        if (toastContainer.children.length === 0) {
+          document.body.removeChild(toastContainer);
+        }
+      });
+    }
+  </script>
+
+  <!-- 
+  ==========================================
+   เพิ่มโค้ด JavaScript สำหรับแสดงภาพในโหมด Modal
+  ========================================== 
+  -->
+
+  <script>
+    // เพิ่มโค้ดจัดการกับการแสดงภาพในโหมด Modal
+    document.addEventListener('DOMContentLoaded', function() {
+      // ฟังก์ชันสำหรับแสดงภาพในโหมด Modal
+      const imageModal = document.getElementById('imageModal');
+      if (imageModal) {
+        imageModal.addEventListener('show.bs.modal', function(event) {
+          const button = event.relatedTarget;
+          const imgSrc = button.getAttribute('data-img');
+          const zone = button.getAttribute('data-zone');
+          const camera = button.getAttribute('data-camera');
+          const title = button.getAttribute('data-title');
+
+          const modalImage = document.getElementById('modalImage');
+          const modalTitle = document.querySelector('#imageModal .modal-title');
+
+          if (modalImage && imgSrc) {
+            modalImage.src = imgSrc;
+          }
+
+          if (modalTitle) {
+            let zoneColor = '';
+            switch (zone) {
+              case '1':
+                zoneColor = '#4e95f4';
+                break; // สีฟ้า
+              case '2':
+                zoneColor = '#4cd3a5';
+                break; // สีเขียว
+              case '3':
+                zoneColor = '#ffc107';
+                break; // สีเหลือง
+              case '4':
+                zoneColor = '#ff6b6b';
+                break; // สีแดง
+            }
+
+            let titleText = title ? ` ${title}` : '';
+            modalTitle.innerHTML = `<span style="color:${zoneColor}">Zone ${zone}${titleText}</span> - กล้อง ${camera}`;
+          }
+        });
+      }
+    });
+  </script>
+
 
 
 </body>

@@ -9,6 +9,8 @@ let barChart = null;
 // เก็บ instance ของกราฟแท่งแนวนอน
 let horizontalBarCharts = [null, null, null, null];
 
+
+
 // URL หลักของ API
 const API_BASE_URL = "https://iconicyou-api.pointit.co.th";
 
