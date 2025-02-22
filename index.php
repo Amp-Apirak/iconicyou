@@ -273,6 +273,87 @@
             </div>
           </div>
 
+
+          <!-- ส่วนแสดงภาพโซนและกล้อง -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-camera-video me-2"></i>ภาพแสดงโซนและตำแหน่งกล้องในระบบ
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row zone-gallery">
+                    <!-- Zone 1 -->
+                    <div class="col-md-3">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/001.png" data-zone="1" data-camera="ICONIC-01" data-title="ทางเข้า-ออก">
+                        <img src="assets/img/001.png" alt="Zone 1" class="img-fluid rounded shadow-sm">
+                        <div class="zone-info">
+                          <h5 class="zone-title" style="color: #4e95f4 !important;">Zone : 1 ทางเข้า-ออก</h5>
+                          <p class="zone-camera" style="color: #c4dcff !important;">กล้อง : ICONIC-01</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Zone 2 -->
+                    <div class="col-md-3">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/002.png" data-zone="2" data-camera="ICONIC-02" data-title="">
+                        <img src="assets/img/002.png" alt="Zone 2" class="img-fluid rounded shadow-sm">
+                        <div class="zone-info">
+                          <h5 class="zone-title" style="color: #4cd3a5 !important;">Zone : 2</h5>
+                          <p class="zone-camera" style="color: #b8ffe2 !important;">กล้อง : ICONIC-02</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Zone 3 -->
+                    <div class="col-md-3">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/003.png" data-zone="3" data-camera="ICONIC-03" data-title="">
+                        <img src="assets/img/003.png" alt="Zone 3" class="img-fluid rounded shadow-sm">
+                        <div class="zone-info">
+                          <h5 class="zone-title" style="color: #ffc107 !important;">Zone : 3</h5>
+                          <p class="zone-camera" style="color: #fff3c4 !important;">กล้อง : ICONIC-03</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Zone 4 -->
+                    <div class="col-md-3">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/004.png" data-zone="4" data-camera="ICONIC-04" data-title="">
+                        <img src="assets/img/004.png" alt="Zone 4" class="img-fluid rounded shadow-sm">
+                        <div class="zone-info">
+                          <h5 class="zone-title" style="color: #ff6b6b !important;">Zone : 4</h5>
+                          <p class="zone-camera" style="color: #ffc4c4 !important;">กล้อง : ICONIC-04</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal สำหรับแสดงภาพขยาย -->
+          <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="imageModalLabel">รายละเอียดโซน</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                  <img id="modalImage" src="" class="img-fluid" alt="Zone Detail">
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
           <div class="row">
             <div class="col-md-6">
               <div class="card mb-4">
@@ -679,6 +760,57 @@
         }
       });
     }
+  </script>
+
+  <!-- 
+  ==========================================
+   เพิ่มโค้ด JavaScript สำหรับแสดงภาพในโหมด Modal
+  ========================================== 
+  -->
+
+  <script>
+    // เพิ่มโค้ดจัดการกับการแสดงภาพในโหมด Modal
+    document.addEventListener('DOMContentLoaded', function() {
+      // ฟังก์ชันสำหรับแสดงภาพในโหมด Modal
+      const imageModal = document.getElementById('imageModal');
+      if (imageModal) {
+        imageModal.addEventListener('show.bs.modal', function(event) {
+          const button = event.relatedTarget;
+          const imgSrc = button.getAttribute('data-img');
+          const zone = button.getAttribute('data-zone');
+          const camera = button.getAttribute('data-camera');
+          const title = button.getAttribute('data-title');
+
+          const modalImage = document.getElementById('modalImage');
+          const modalTitle = document.querySelector('#imageModal .modal-title');
+
+          if (modalImage && imgSrc) {
+            modalImage.src = imgSrc;
+          }
+
+          if (modalTitle) {
+            let zoneColor = '';
+            switch (zone) {
+              case '1':
+                zoneColor = '#4e95f4';
+                break; // สีฟ้า
+              case '2':
+                zoneColor = '#4cd3a5';
+                break; // สีเขียว
+              case '3':
+                zoneColor = '#ffc107';
+                break; // สีเหลือง
+              case '4':
+                zoneColor = '#ff6b6b';
+                break; // สีแดง
+            }
+
+            let titleText = title ? ` ${title}` : '';
+            modalTitle.innerHTML = `<span style="color:${zoneColor}">Zone ${zone}${titleText}</span> - กล้อง ${camera}`;
+          }
+        });
+      }
+    });
   </script>
 
 
