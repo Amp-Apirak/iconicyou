@@ -12,16 +12,10 @@
   <meta name="keywords" content="ICONIC YOU | Dashboard " />
 
   <!-- CSS: Bootstrap, Bootstrap Icons, AdminLTE, custom -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <!-- เพิ่ม Font Awesome สำหรับไอคอนเพิ่มเติม -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="css/adminlte.css" />
 
   <!-- สำหรับปรับแต่งกราฟ -->
@@ -31,9 +25,7 @@
   <link rel="stylesheet" href="css/dashboard-styles.css" />
 
   <!-- ApexCharts -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css" />
 
 </head>
 
@@ -77,10 +69,7 @@
                 <i class="bi bi-search me-2"></i>ค้นหาข้อมูล
               </h5>
               <div class="card-tools">
-                <button
-                  type="button"
-                  class="btn btn-tool"
-                  data-lte-toggle="card-collapse">
+                <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
                   <i class="bi bi-dash-lg"></i>
                 </button>
               </div>
@@ -190,10 +179,12 @@
               <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
-                    <i class="bi bi-bar-chart-line me-2"></i>กราฟแท่งจำนวนคนเฉลี่ยต่อชั่วโมง แยกตามโซน/กล้อง
+                    <i class="bi bi-bar-chart-line me-2"></i>กราฟแท่งจำนวนคนเฉลี่ยต่อชั่วโมง
+                    แยกตามโซน/กล้อง
                   </h5>
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="download-chart">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-chart">
                       <i class="bi bi-download me-1"></i> ดาวน์โหลด
                     </button>
                     <!-- <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
@@ -223,44 +214,64 @@
                   <div class="row zone-gallery">
                     <!-- Zone 1 -->
                     <div class="col-md-3">
-                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/001.png" data-zone="1" data-camera="ICONIC-01" data-title="ทางเข้า-ออก">
-                        <img src="assets/img/001.png" alt="Zone 1" class="img-fluid rounded shadow-sm">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-img="assets/img/001.png" data-zone="1" data-camera="ICONIC-01"
+                        data-title="ทางเข้า-ออก">
+                        <img src="assets/img/001.png" alt="Zone 1"
+                          class="img-fluid rounded shadow-sm">
                         <div class="zone-info">
-                          <h5 class="zone-title" style="color: #4e95f4 !important;">Zone : 1 ทางเข้า-ออก</h5>
-                          <p class="zone-camera" style="color: #c4dcff !important;">กล้อง : ICONIC-01</p>
+                          <h5 class="zone-title" style="color: #4e95f4 !important;">Zone : 1
+                            ทางเข้า-ออก</h5>
+                          <p class="zone-camera" style="color: #c4dcff !important;">กล้อง :
+                            ICONIC-01</p>
                         </div>
                       </div>
                     </div>
 
                     <!-- Zone 2 -->
                     <div class="col-md-3">
-                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/002.png" data-zone="2" data-camera="ICONIC-02" data-title="">
-                        <img src="assets/img/002.png" alt="Zone 2" class="img-fluid rounded shadow-sm">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-img="assets/img/002.png" data-zone="2" data-camera="ICONIC-02"
+                        data-title="">
+                        <img src="assets/img/002.png" alt="Zone 2"
+                          class="img-fluid rounded shadow-sm">
                         <div class="zone-info">
-                          <h5 class="zone-title" style="color: #4cd3a5 !important;">Zone : 2</h5>
-                          <p class="zone-camera" style="color: #b8ffe2 !important;">กล้อง : ICONIC-02</p>
+                          <h5 class="zone-title" style="color: #4cd3a5 !important;">Zone : 2
+                          </h5>
+                          <p class="zone-camera" style="color: #b8ffe2 !important;">กล้อง :
+                            ICONIC-02</p>
                         </div>
                       </div>
                     </div>
 
                     <!-- Zone 3 -->
                     <div class="col-md-3">
-                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/003.png" data-zone="3" data-camera="ICONIC-03" data-title="">
-                        <img src="assets/img/003.png" alt="Zone 3" class="img-fluid rounded shadow-sm">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-img="assets/img/003.png" data-zone="3" data-camera="ICONIC-03"
+                        data-title="">
+                        <img src="assets/img/003.png" alt="Zone 3"
+                          class="img-fluid rounded shadow-sm">
                         <div class="zone-info">
-                          <h5 class="zone-title" style="color: #ffc107 !important;">Zone : 3</h5>
-                          <p class="zone-camera" style="color: #fff3c4 !important;">กล้อง : ICONIC-03</p>
+                          <h5 class="zone-title" style="color: #ffc107 !important;">Zone : 3
+                          </h5>
+                          <p class="zone-camera" style="color: #fff3c4 !important;">กล้อง :
+                            ICONIC-03</p>
                         </div>
                       </div>
                     </div>
 
                     <!-- Zone 4 -->
                     <div class="col-md-3">
-                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal" data-img="assets/img/004.png" data-zone="4" data-camera="ICONIC-04" data-title="">
-                        <img src="assets/img/004.png" alt="Zone 4" class="img-fluid rounded shadow-sm">
+                      <div class="zone-item" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-img="assets/img/004.png" data-zone="4" data-camera="ICONIC-04"
+                        data-title="">
+                        <img src="assets/img/004.png" alt="Zone 4"
+                          class="img-fluid rounded shadow-sm">
                         <div class="zone-info">
-                          <h5 class="zone-title" style="color: #ff6b6b !important;">Zone : 4</h5>
-                          <p class="zone-camera" style="color: #ffc4c4 !important;">กล้อง : ICONIC-04</p>
+                          <h5 class="zone-title" style="color: #ff6b6b !important;">Zone : 4
+                          </h5>
+                          <p class="zone-camera" style="color: #ffc4c4 !important;">กล้อง :
+                            ICONIC-04</p>
                         </div>
                       </div>
                     </div>
@@ -271,12 +282,14 @@
           </div>
 
           <!-- Modal สำหรับแสดงภาพขยาย -->
-          <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+          <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog modal-lg">
               <div class="modal-content">
                 <div class="modal-header">
                   <h5 class="modal-title" id="imageModalLabel">รายละเอียดโซน</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
                   <img id="modalImage" src="" class="img-fluid" alt="Zone Detail">
@@ -296,12 +309,15 @@
                     <i class="bi bi-bar-chart me-2"></i>จำนวนนับบุคคลตามช่วงเวลาจากกล้อง :
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                     </ul>
                   </div>
                 </div>
@@ -318,12 +334,15 @@
                     <i class="bi bi-bar-chart me-2"></i>จำนวนนับบุคคลตามช่วงเวลาจากกล้อง :
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                     </ul>
                   </div>
                 </div>
@@ -343,12 +362,15 @@
                     <i class="bi bi-bar-chart me-2"></i>จำนวนนับบุคคลตามช่วงเวลาจากกล้อง :
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton3">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                     </ul>
                   </div>
                 </div>
@@ -365,12 +387,15 @@
                     <i class="bi bi-bar-chart me-2"></i>จำนวนนับบุคคลตามช่วงเวลาจากกล้อง :
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                     </ul>
                   </div>
                 </div>
@@ -390,17 +415,24 @@
                     <i class="bi bi-graph-up me-2"></i>กราฟจำนวนตามเวลา
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownTimeSeriesChart" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownTimeSeriesChart" data-bs-toggle="dropdown"
+                      aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownTimeSeriesChart">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-range me-1"></i> แสดงข้อมูลรายวัน</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-week me-1"></i> แสดงข้อมูลรายสัปดาห์</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-calendar-range me-1"></i> แสดงข้อมูลรายวัน</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-calendar-week me-1"></i> แสดงข้อมูลรายสัปดาห์</a>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -417,17 +449,22 @@
                     <i class="bi bi-pie-chart-fill me-2"></i>สัดส่วนตามกล้อง
                   </h5>
                   <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownPieChart" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                      id="dropdownPieChart" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownPieChart">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
+                          ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-graph-up-arrow me-1"></i> แสดงเป็นกราฟแท่ง</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-pie-chart me-1"></i> แสดงเป็นกราฟวงกลม</a></li>
+                      <li><a class="dropdown-item" href="#"><i
+                            class="bi bi-graph-up-arrow me-1"></i> แสดงเป็นกราฟแท่ง</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-pie-chart me-1"></i>
+                          แสดงเป็นกราฟวงกลม</a></li>
                     </ul>
                   </div>
                 </div>
@@ -439,22 +476,96 @@
             </div>
           </div>
 
-          <!-- เพิ่มในส่วนที่ต้องการแสดงกราฟ -->
+          <!-- กราฟแสดงระยะเวลาการอยู่ในพื้นที่ แต่ละกล้อง/โซน -->
           <div class="row">
+            <!-- ICONIC-01 -->
             <div class="col-md-6">
               <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
-                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #0d6efd">Zone : 1 ทางเข้า-ออก</span>
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #0d6efd">Zone : 1
+                      ทางเข้า-ออก</span>
+                    <small style="color: #c4dcff">กล้อง : ICONIC-01</small>
                   </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-1">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body chart-container">
                   <div id="activity-chart-1" style="min-height: 350px;"></div>
                 </div>
               </div>
             </div>
-            <!-- ทำซ้ำสำหรับกราฟที่ 2-4 โดยเปลี่ยน id เป็น activity-chart-2, activity-chart-3, activity-chart-4 -->
+
+            <!-- ICONIC-02 -->
+            <div class="col-md-6">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #20c997">Zone : 2</span>
+                    <small style="color: #b8ffe2">กล้อง : ICONIC-02</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-2">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body chart-container">
+                  <div id="activity-chart-2" style="min-height: 350px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ICONIC-03 -->
+            <div class="col-md-6">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #ffc107">Zone : 3</span>
+                    <small style="color: #fff3c4">กล้อง : ICONIC-03</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-3">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body chart-container">
+                  <div id="activity-chart-3" style="min-height: 350px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ICONIC-04 -->
+            <div class="col-md-6">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #ff6b6b">Zone : 4</span>
+                    <small style="background-color: #ffc4c4">กล้อง : ICONIC-04</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-4">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body chart-container">
+                  <div id="activity-chart-4" style="min-height: 350px;"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
 
@@ -479,10 +590,8 @@
     </div>
 
     <!-- JS: Bootstrap, ApexCharts, AdminLTE, index.js -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
     <script src="js/adminlte.js"></script>
     <script src="js/index.js"></script>
     <script src="js/toast.js"></script>

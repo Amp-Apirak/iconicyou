@@ -1290,7 +1290,6 @@ window.addEventListener("load", function () {
   hideLoading();
 });
 
-
 // ==========================================
 // ฟังก์ชันสำหรับดึงข้อมูล Activity Gantt
 // ==========================================
@@ -1336,23 +1335,316 @@ function calculateDurationInMinutes(start_time, end_time) {
 }
 
 // ฟังก์ชันประมวลผลข้อมูลสำหรับกราฟ
+// ปรับปรุงฟังก์ชัน processActivityData
 function processActivityData(data, sourceName) {
-  // กรองข้อมูลตามกล้อง
-  const filteredData = data.filter(
-    (item) =>
-      item.data && item.data.source === sourceName && item.name === "person"
-  );
+  try {
+    // กรองข้อมูลตามกล้องและเฉพาะ person เท่านั้น
+    const filteredData = data.filter(
+      (item) =>
+        item.data && item.data.source === sourceName && item.name === "person"
+    );
 
-  // คำนวณระยะเวลาและจัดกลุ่ม
-  const durations = filteredData.map((item) => ({
-    duration: calculateDurationInMinutes(
-      item.data.start_time,
-      item.data.end_time
-    ),
-  }));
+    // คำนวณระยะเวลาและเก็บข้อมูลที่จำเป็น
+    const durations = filteredData.map((item) => {
+      const duration = calculateDurationInMinutes(
+        item.data.start_time,
+        item.data.end_time
+      );
+      return {
+        duration,
+        startTime: new Date(item.data.start_time),
+        endTime: new Date(item.data.end_time),
+      };
+    });
 
-  // เรียงลำดับตามระยะเวลาจากมากไปน้อย
-  return durations.sort((a, b) => b.duration - a.duration);
+    // เรียงลำดับตามระยะเวลาจากมากไปน้อย และเลือก 10 อันดับแรก
+    return durations.sort((a, b) => b.duration - a.duration).slice(0, 10); // จำกัดแค่ 10 อันดับ
+  } catch (error) {
+    console.error(`Error processing activity data for ${sourceName}:`, error);
+    return [];
+  }
+}
+
+// ปรับปรุงฟังก์ชัน updateActivityChart
+// ฟังก์ชันสำหรับประมวลผลข้อมูลกราฟ Activity
+function updateActivityChart(data, cameraIndex) {
+  // ตรวจสอบ container ของกราฟ
+  const containerId = `activity-chart-${cameraIndex + 1}`;
+  const chartEl = document.querySelector(`#${containerId}`);
+  if (!chartEl) return;
+
+  // กำหนดชื่อกล้องและโซน
+  const cameraName = `ICONIC-0${cameraIndex + 1}`;
+  const zoneNames = {
+    "ICONIC-01": "Zone : 1 ทางเข้า-ออก",
+    "ICONIC-02": "Zone : 2",
+    "ICONIC-03": "Zone : 3",
+    "ICONIC-04": "Zone : 4",
+  };
+
+  // ประมวลผลข้อมูล
+  const processedData = processActivityData(data, cameraName);
+
+  // กำหนด options สำหรับกราฟ
+  const options = {
+    series: [
+      {
+        name: "ระยะเวลา",
+        data: processedData.map((d) => d.duration),
+      },
+    ],
+    chart: {
+      type: "bar",
+      height: 350,
+      toolbar: {
+        show: true,
+        tools: {
+          download: true,
+          selection: false,
+          zoom: false,
+          zoomin: false,
+          zoomout: false,
+          pan: false,
+          reset: false,
+          customIcons: [],
+        },
+        export: {
+          csv: {
+            filename: `activity_${cameraName}_${new Date().toLocaleDateString()}`,
+            columnDelimiter: ",",
+            headerCategory: "อันดับ",
+            headerValue: "ระยะเวลา (นาที)",
+          },
+          svg: {
+            filename: `activity_${cameraName}_${new Date().toLocaleDateString()}`,
+          },
+          png: {
+            filename: `activity_${cameraName}_${new Date().toLocaleDateString()}`,
+          },
+        },
+      },
+      animations: {
+        enabled: true,
+        easing: "easeinout",
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150,
+        },
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350,
+        },
+      },
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        columnWidth: "50%",
+        distributed: true,
+        dataLabels: {
+          position: "top",
+        },
+        colors: {
+          ranges: [
+            {
+              from: 0,
+              to: Number.MAX_VALUE,
+              color: getCameraColor(cameraName),
+            },
+          ],
+        },
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val) {
+        return val + " นาที";
+      },
+      offsetY: -20,
+      style: {
+        fontSize: "12px",
+        colors: ["#304758"],
+        fontWeight: "500",
+      },
+    },
+    colors: [getCameraColor(cameraName)],
+    xaxis: {
+      categories: processedData.map((_, index) => `อันดับ ${index + 1}`),
+      title: {
+        text: "อันดับ",
+        style: {
+          fontSize: "13px",
+          fontWeight: 500,
+        },
+      },
+      labels: {
+        style: {
+          fontSize: "12px",
+        },
+      },
+    },
+    yaxis: {
+      title: {
+        text: "ระยะเวลา (นาที)",
+        style: {
+          fontSize: "13px",
+          fontWeight: 500,
+        },
+      },
+      min: 0,
+      labels: {
+        formatter: (val) => Math.round(val),
+        style: {
+          fontSize: "12px",
+        },
+      },
+    },
+    title: {
+      text: `${zoneNames[cameraName]} (${cameraName})`,
+      align: "center",
+      style: {
+        fontSize: "14px",
+        fontWeight: "600",
+        color: getCameraColor(cameraName),
+      },
+      margin: 10,
+    },
+    subtitle: {
+      text: `อันดับการใช้เวลาในพื้นที่สูงสุด 10 อันดับแรก\n${getDateRangeText()}`,
+      align: "center",
+      style: {
+        fontSize: "12px",
+        color: "#999999",
+      },
+      margin: 10,
+    },
+    tooltip: {
+      custom: function ({ seriesIndex, dataPointIndex }) {
+        const data = processedData[dataPointIndex];
+        const duration = data.duration;
+        const avgDuration = calculateAverage(processedData);
+        const isAboveAvg = duration > avgDuration;
+
+        return `
+          <div class="activity-tooltip p-3">
+            <div class="tooltip-title mb-2 border-bottom pb-1">
+              อันดับ ${dataPointIndex + 1}
+            </div>
+            <div class="tooltip-content">
+              <div class="mb-1">
+                <i class="bi bi-clock me-1"></i> 
+                ระยะเวลา: <strong>${duration} นาที</strong>
+                ${
+                  isAboveAvg
+                    ? ' <span class="text-danger">(สูงกว่าค่าเฉลี่ย)</span>'
+                    : ""
+                }
+              </div>
+              <div class="mb-1">
+                <i class="bi bi-calendar-event me-1"></i>
+                เริ่มต้น: ${formatDateTime(data.startTime)}
+              </div>
+              <div class="mb-1">
+                <i class="bi bi-calendar-event me-1"></i>
+                สิ้นสุด: ${formatDateTime(data.endTime)}
+              </div>
+              <div class="text-muted mt-2 pt-1 border-top">
+                <small>ค่าเฉลี่ย: ${avgDuration} นาที</small>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "#f1f1f1",
+      strokeDashArray: 0,
+      position: "back",
+      padding: {
+        top: 20,
+      },
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 300,
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: "70%",
+            },
+          },
+        },
+      },
+    ],
+  };
+
+  try {
+    // สร้างหรืออัพเดทกราฟ
+    if (activityCharts[cameraIndex]) {
+      activityCharts[cameraIndex].updateOptions(options);
+    } else {
+      activityCharts[cameraIndex] = new ApexCharts(chartEl, options);
+      activityCharts[cameraIndex].render();
+    }
+  } catch (error) {
+    console.error(`Error updating activity chart ${cameraIndex + 1}:`, error);
+    // แสดงข้อความ error บนกราฟ
+    if (chartEl) {
+      if (!chartEl.querySelector(".error-message")) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error-message alert alert-danger m-3";
+        errorDiv.innerHTML = `
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          เกิดข้อผิดพลาดในการแสดงกราฟ: ${error.message}
+        `;
+        chartEl.appendChild(errorDiv);
+      }
+    }
+  }
+}
+
+
+// ฟังก์ชันสำหรับสร้างข้อความแสดงช่วงเวลา
+function getDateRangeText() {
+  const form = document.getElementById("search-form");
+  if (!form) return "";
+
+  const formData = new FormData(form);
+  const dateRange = formData.get("date_range") || "today";
+  const startDate = formData.get("start_date");
+  const endDate = formData.get("end_date");
+
+  if (dateRange === "custom" && startDate && endDate) {
+    return `ช่วงวันที่ ${formatDate(startDate)} ถึง ${formatDate(endDate)}`;
+  }
+
+  switch (dateRange) {
+    case "today":
+      return "วันนี้";
+    case "yesterday":
+      return "เมื่อวาน";
+    case "last7days":
+      return "7 วันล่าสุด";
+    case "last30days":
+      return "30 วันล่าสุด";
+    default:
+      return "";
+  }
+}
+
+// ฟังก์ชันสำหรับจัดรูปแบบวันที่
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function updateActivityChart(data, cameraIndex) {
