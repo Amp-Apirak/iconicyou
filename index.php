@@ -439,6 +439,26 @@
             </div>
           </div>
 
+          <!-- เพิ่มในส่วนที่ต้องการแสดงกราฟ -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #0d6efd">Zone : 1 ทางเข้า-ออก</span>
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div id="activity-chart-1" style="min-height: 350px;"></div>
+                </div>
+              </div>
+            </div>
+            <!-- ทำซ้ำสำหรับกราฟที่ 2-4 โดยเปลี่ยน id เป็น activity-chart-2, activity-chart-3, activity-chart-4 -->
+          </div>
+
+
+
         </div> <!-- container-fluid -->
       </div> <!-- app-content -->
     </main>
@@ -469,6 +489,9 @@
     <script src="js/modal.js"></script>
     <script src="js/form-handler.js"></script>
     <script src="js/main.js"></script>
+
+
+
 
 
 </body>

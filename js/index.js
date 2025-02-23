@@ -9,8 +9,6 @@ let barChart = null;
 // เก็บ instance ของกราฟแท่งแนวนอน
 let horizontalBarCharts = [null, null, null, null];
 
-
-
 // URL หลักของ API
 const API_BASE_URL = "https://iconicyou-api.pointit.co.th";
 
@@ -28,7 +26,7 @@ let currentData = [];
 let currentSearchParams = null;
 
 // ตัวแปรควบคุมการแสดง debug
-const SHOW_DEBUG = true;
+const SHOW_DEBUG = false;
 
 /**
  * ----------------------------------------------------------------
@@ -457,6 +455,21 @@ function updateDashboard(data, isRealtime = false) {
       updateStats(data);
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการอัปเดตสถิติ:", error);
+    }
+
+    // ดึงข้อมูล Activity Gantt และอัพเดทกราฟ
+    if (currentSearchParams) {
+      fetchActivityGanttData(new URLSearchParams(currentSearchParams))
+        .then((activityData) => {
+          if (Array.isArray(activityData)) {
+            for (let i = 0; i < 4; i++) {
+              updateActivityChart(activityData, i);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating activity charts:", error);
+        });
     }
 
     updateLastUpdatedTime();
@@ -1206,7 +1219,6 @@ function toggleDateFields() {
   });
 }
 
-
 // ==========================================
 // ส่วนการทำงานเมื่อหน้าเว็บโหลดเสร็จ (DOMContentLoaded)
 // ==========================================
@@ -1277,3 +1289,152 @@ window.addEventListener("load", function () {
   debug("หน้าเว็บและทรัพยากรทั้งหมดโหลดเสร็จสมบูรณ์");
   hideLoading();
 });
+
+
+// ==========================================
+// ฟังก์ชันสำหรับดึงข้อมูล Activity Gantt
+// ==========================================
+
+// เพิ่มในส่วนประกาศตัวแปร Global
+let activityCharts = [null, null, null, null];
+
+// ฟังก์ชันสำหรับดึงข้อมูล Activity Gantt
+async function fetchActivityGanttData(params) {
+  try {
+    const computeId = params.get("compute_id") || 7;
+    let url = `${API_BASE_URL}/activity_ganttchart?compute_id=${computeId}`;
+
+    // เพิ่ม parameters วันที่
+    if (params.get("start_date") && params.get("end_date")) {
+      url += `&start_date=${params.get("start_date")}&end_date=${params.get(
+        "end_date"
+      )}`;
+    } else {
+      // ถ้าไม่มีการค้นหา ใช้วันปัจจุบันถึงพรุ่งนี้
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      url += `&start_date=${today.toISOString().split("T")[0]}`;
+      url += `&end_date=${tomorrow.toISOString().split("T")[0]}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching activity gantt data:", error);
+    return [];
+  }
+}
+
+// ฟังก์ชันคำนวณระยะเวลาเป็นนาที
+function calculateDurationInMinutes(start_time, end_time) {
+  const start = new Date(start_time);
+  const end = new Date(end_time);
+  return Math.round((end - start) / (1000 * 60)); // แปลงเป็นนาที
+}
+
+// ฟังก์ชันประมวลผลข้อมูลสำหรับกราฟ
+function processActivityData(data, sourceName) {
+  // กรองข้อมูลตามกล้อง
+  const filteredData = data.filter(
+    (item) =>
+      item.data && item.data.source === sourceName && item.name === "person"
+  );
+
+  // คำนวณระยะเวลาและจัดกลุ่ม
+  const durations = filteredData.map((item) => ({
+    duration: calculateDurationInMinutes(
+      item.data.start_time,
+      item.data.end_time
+    ),
+  }));
+
+  // เรียงลำดับตามระยะเวลาจากมากไปน้อย
+  return durations.sort((a, b) => b.duration - a.duration);
+}
+
+function updateActivityChart(data, cameraIndex) {
+  const containerId = `activity-chart-${cameraIndex + 1}`;
+  const chartEl = document.querySelector(`#${containerId}`);
+  if (!chartEl) return;
+
+  const cameraName = `ICONIC-0${cameraIndex + 1}`;
+  const processedData = processActivityData(data, cameraName);
+
+  const options = {
+    series: [
+      {
+        name: "ระยะเวลา",
+        data: processedData.map((d) => d.duration),
+      },
+    ],
+    chart: {
+      type: "bar",
+      height: 350,
+      toolbar: {
+        show: true,
+        tools: {
+          download: true,
+          selection: false,
+          zoom: false,
+          zoomin: false,
+          zoomout: false,
+          pan: false,
+          reset: false,
+        },
+      },
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 3,
+        columnWidth: "50%",
+        distributed: true,
+      },
+    },
+    colors: [getCameraColor(cameraName)],
+    dataLabels: {
+      enabled: true,
+      formatter: function (val) {
+        return val + " นาที";
+      },
+      style: {
+        fontSize: "12px",
+      },
+    },
+    xaxis: {
+      categories: processedData.map((_, index) => `person ${index + 1}`),
+      title: {
+        text: "Person",
+      },
+    },
+    yaxis: {
+      title: {
+        text: "ระยะเวลา (นาที)",
+      },
+      min: 0,
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + " นาที";
+        },
+      },
+    },
+    grid: {
+      borderColor: "#f1f1f1",
+    },
+  };
+
+  try {
+    if (activityCharts[cameraIndex]) {
+      activityCharts[cameraIndex].updateOptions(options);
+    } else {
+      activityCharts[cameraIndex] = new ApexCharts(chartEl, options);
+      activityCharts[cameraIndex].render();
+    }
+  } catch (error) {
+    console.error(`Error updating activity chart ${cameraIndex + 1}:`, error);
+  }
+}

@@ -1,5 +1,5 @@
 
-<!-- เพิ่มโค้ด JavaScript สำหรับปุ่มเพิ่มเติม -->
+// <!-- เพิ่มโค้ด JavaScript สำหรับปุ่มเพิ่มเติม -->
 <script>
   // เพิ่มเหตุการณ์ (event) สำหรับปุ่มดาวน์โหลดและตัวเลือกอื่นๆ ในทุกกราฟ
   document.addEventListener('DOMContentLoaded', function() {
