@@ -148,7 +148,7 @@
                 </div>
                 <h5 class="stat-title">จำนวนคนทั้งหมด</h5>
                 <div class="stat-number" id="total-people">0</div>
-                <div class="mt-3 text-muted small">ผู้ใช้งานทั้งหมดในระบบ</div>
+                <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่</div>
               </div>
             </div>
             <div class="col-md-4">
@@ -568,7 +568,11 @@
             </div>
           </div>
 
-
+          <div class="row">
+            <div class="col-md-12">
+              
+            </div>
+          </div>
 
         </div> <!-- container-fluid -->
       </div> <!-- app-content -->
