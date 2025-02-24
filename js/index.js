@@ -1608,7 +1608,6 @@ function updateActivityChart(data, cameraIndex) {
   }
 }
 
-
 // ฟังก์ชันสำหรับสร้างข้อความแสดงช่วงเวลา
 function getDateRangeText() {
   const form = document.getElementById("search-form");
@@ -1730,3 +1729,4 @@ function updateActivityChart(data, cameraIndex) {
     console.error(`Error updating activity chart ${cameraIndex + 1}:`, error);
   }
 }
+
