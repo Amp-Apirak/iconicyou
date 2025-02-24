@@ -1876,7 +1876,6 @@ function processActivityDurationData(data) {
   });
 }
 
-
 // ==========================================
 // ฟังก์ชันอัพเดทกราฟ Box Plot
 // ==========================================
@@ -1891,6 +1890,7 @@ function updateActivityDurationChart(data) {
         data: processedData.map((d) => ({
           x: d.zone,
           y: [d.min, d.q1, d.median, d.q3, d.max],
+          camera: d.camera, // เก็บข้อมูลกล้องเพื่อใช้กำหนดสี
         })),
       },
     ],
@@ -1923,10 +1923,11 @@ function updateActivityDurationChart(data) {
     },
     plotOptions: {
       boxPlot: {
-        colors: {
-          upper: getCameraColor("ICONIC-01"),
-          lower: getCameraColor("ICONIC-02"),
-        },
+        colors: processedData.map((d) => ({
+          upper: getCameraColor(d.camera),
+          lower: getCameraColor(d.camera),
+          line: getCameraColor(d.camera),
+        })),
       },
     },
     xaxis: {
@@ -1934,6 +1935,11 @@ function updateActivityDurationChart(data) {
         text: "Zone",
         style: {
           fontSize: "14px",
+        },
+      },
+      labels: {
+        style: {
+          colors: processedData.map((d) => getCameraColor(d.camera)),
         },
       },
     },
@@ -1968,6 +1974,8 @@ function updateActivityDurationChart(data) {
         `;
       },
     },
+    // เพิ่ม colors array เพื่อให้แน่ใจว่าสีถูกใช้อย่างถูกต้อง
+    colors: processedData.map((d) => getCameraColor(d.camera)),
   };
 
   const chartEl = document.querySelector("#activity-duration-chart");
