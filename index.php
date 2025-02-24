@@ -570,7 +570,22 @@
 
           <div class="row">
             <div class="col-md-12">
-              
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>
+                    การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน (หน่วยเป็นนาที)
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="export-activity-data">
+                      <i class="bi bi-download me-1"></i> Export
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div id="activity-duration-chart"></div>
+                </div>
+              </div>
             </div>
           </div>
 

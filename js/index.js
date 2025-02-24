@@ -457,6 +457,19 @@ function updateDashboard(data, isRealtime = false) {
       console.error("เกิดข้อผิดพลาดในการอัปเดตสถิติ:", error);
     }
 
+    // เพิ่มการอัพเดทกราฟ Box Plot
+    if (currentSearchParams) {
+      fetchActivityDurationData(new URLSearchParams(currentSearchParams))
+        .then((activityData) => {
+          if (Array.isArray(activityData)) {
+            updateActivityDurationChart(activityData);
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating activity duration chart:", error);
+        });
+    }
+
     // ดึงข้อมูล Activity Gantt และอัพเดทกราฟ
     if (currentSearchParams) {
       fetchActivityGanttData(new URLSearchParams(currentSearchParams))
@@ -1730,3 +1743,294 @@ function updateActivityChart(data, cameraIndex) {
   }
 }
 
+// ==========================================
+// เพิ่มตัวแปร Global สำหรับกราฟ Activity Duration
+// ==========================================
+let activityDurationChart = null;
+
+// ==========================================
+// ฟังก์ชันดึงข้อมูลกิจกรรมและระยะเวลา
+// ==========================================
+async function fetchActivityDurationData(params) {
+  try {
+    const computeId = params.get("compute_id") || 7;
+    let url = `${API_BASE_URL}/activity_ganttchart?compute_id=${computeId}`;
+
+    // เพิ่มพารามิเตอร์วันที่
+    const startDate = params.get("start_date");
+    const endDate = params.get("end_date");
+
+    if (startDate && endDate) {
+      url += `&start_date=${startDate}&end_date=${endDate}`;
+    } else {
+      // ถ้าไม่มีการค้นหา ใช้วันปัจจุบันถึงพรุ่งนี้
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      url += `&start_date=${today.toISOString().split("T")[0]}`;
+      url += `&end_date=${tomorrow.toISOString().split("T")[0]}`;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching activity duration data:", error);
+    return [];
+  }
+}
+
+// ==========================================
+// ฟังก์ชันประมวลผลข้อมูลสำหรับ Box Plot
+// ==========================================
+function processActivityDurationData(data) {
+  // 1. สร้าง object เก็บข้อมูลตามกล้อง
+  const cameraData = {
+    "ICONIC-01": [], // Zone 1
+    "ICONIC-02": [], // Zone 2
+    "ICONIC-03": [], // Zone 3
+    "ICONIC-04": [], // Zone 4
+  };
+
+  // 2. วนลูปข้อมูลและกรองเฉพาะ person เท่านั้น
+  data.forEach((item) => {
+    // เพิ่มเงื่อนไขตรวจสอบ name === "person"
+    if (
+      item.name === "person" &&
+      item.data &&
+      item.data.start_time &&
+      item.data.end_time &&
+      item.data.source
+    ) {
+      const duration = calculateDurationInMinutes(
+        item.data.start_time,
+        item.data.end_time
+      );
+
+      // เก็บข้อมูลตามกล้อง
+      const cameraName = item.data.source;
+      if (cameraData[cameraName]) {
+        cameraData[cameraName].push({
+          duration: duration,
+          startTime: new Date(item.data.start_time),
+          endTime: new Date(item.data.end_time),
+        });
+      }
+    }
+  });
+
+  // 3. กำหนด mapping ระหว่างกล้องและ Zone
+  const zoneMapping = {
+    "ICONIC-01": "Zone 1 ทางเข้า-ออก",
+    "ICONIC-02": "Zone 2",
+    "ICONIC-03": "Zone 3",
+    "ICONIC-04": "Zone 4",
+  };
+
+  // 4. ประมวลผลข้อมูลสถิติ
+  return Object.entries(cameraData).map(([camera, dataPoints]) => {
+    // เรียงข้อมูลตามระยะเวลา
+    const durations = dataPoints.map((d) => d.duration).sort((a, b) => a - b);
+    const n = durations.length;
+
+    if (n === 0)
+      return {
+        zone: zoneMapping[camera] || camera,
+        min: 0,
+        q1: 0,
+        median: 0,
+        q3: 0,
+        max: 0,
+        count: 0,
+        camera: camera,
+        details: [], // เก็บรายละเอียดเพิ่มเติม
+      };
+
+    // คำนวณค่าสถิติ
+    const stats = {
+      zone: zoneMapping[camera] || camera,
+      min: durations[0],
+      q1: durations[Math.floor(n / 4)],
+      median:
+        n % 2 === 0
+          ? (durations[n / 2 - 1] + durations[n / 2]) / 2
+          : durations[Math.floor(n / 2)],
+      q3: durations[Math.floor((3 * n) / 4)],
+      max: durations[n - 1],
+      count: n,
+      camera: camera,
+      details: dataPoints.map((d) => ({
+        duration: d.duration,
+        startTime: d.startTime,
+        endTime: d.endTime,
+      })),
+    };
+
+    // เพิ่มการคำนวณค่าเฉลี่ย
+    stats.average = durations.reduce((sum, val) => sum + val, 0) / n;
+
+    return stats;
+  });
+}
+
+
+// ==========================================
+// ฟังก์ชันอัพเดทกราฟ Box Plot
+// ==========================================
+function updateActivityDurationChart(data) {
+  const processedData = processActivityDurationData(data);
+
+  const options = {
+    series: [
+      {
+        name: "ระยะเวลา",
+        type: "boxPlot",
+        data: processedData.map((d) => ({
+          x: d.zone,
+          y: [d.min, d.q1, d.median, d.q3, d.max],
+        })),
+      },
+    ],
+    chart: {
+      type: "boxPlot",
+      height: 400,
+      toolbar: {
+        show: true,
+        tools: {
+          download: true,
+          selection: true,
+          zoom: true,
+          zoomin: true,
+          zoomout: true,
+          pan: true,
+          reset: true,
+          exportToSVG: true,
+          exportToPNG: true,
+          exportToCSV: true,
+        },
+      },
+    },
+    title: {
+      text: "การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน (หน่วยเป็นนาที)",
+      align: "center",
+      style: {
+        fontSize: "16px",
+        fontWeight: "bold",
+      },
+    },
+    plotOptions: {
+      boxPlot: {
+        colors: {
+          upper: getCameraColor("ICONIC-01"),
+          lower: getCameraColor("ICONIC-02"),
+        },
+      },
+    },
+    xaxis: {
+      title: {
+        text: "Zone",
+        style: {
+          fontSize: "14px",
+        },
+      },
+    },
+    yaxis: {
+      title: {
+        text: "ระยะเวลา (นาที)",
+        style: {
+          fontSize: "14px",
+        },
+      },
+      min: 0,
+    },
+    tooltip: {
+      custom: function ({ seriesIndex, dataPointIndex, w }) {
+        const data = processedData[dataPointIndex];
+        return `
+          <div class="activity-tooltip p-3">
+            <div class="fw-bold mb-2 border-bottom pb-2">${data.zone}</div>
+            <div class="px-3">
+              <div>จำนวนคน: ${data.count} คน</div>
+              <div>ระยะเวลาเฉลี่ย: ${Math.round(data.average)} นาที</div>
+              <div class="mt-2">การกระจายของเวลา:</div>
+              <div class="ps-2">
+                <div>• ต่ำสุด: ${data.min} นาที</div>
+                <div>• Q1 (25%): ${data.q1} นาที</div>
+                <div>• กลาง: ${data.median} นาที</div>
+                <div>• Q3 (75%): ${data.q3} นาที</div>
+                <div>• สูงสุด: ${data.max} นาที</div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+    },
+  };
+
+  const chartEl = document.querySelector("#activity-duration-chart");
+  if (!chartEl) {
+    console.error("ไม่พบ element สำหรับกราฟ Box Plot");
+    return;
+  }
+
+  try {
+    if (activityDurationChart) {
+      activityDurationChart.updateOptions(options);
+    } else {
+      activityDurationChart = new ApexCharts(chartEl, options);
+      activityDurationChart.render();
+    }
+  } catch (error) {
+    console.error("Error updating activity duration chart:", error);
+  }
+}
+
+// ==========================================
+// Helper Functions
+// ==========================================
+
+// ฟังก์ชันคำนวณระยะเวลาเป็นนาที
+function calculateDurationInMinutes(start_time, end_time) {
+  const start = new Date(start_time);
+  const end = new Date(end_time);
+  return Math.round((end - start) / (1000 * 60));
+}
+
+// ฟังก์ชันการ Export ข้อมูล
+function exportActivityData(data, format = "csv") {
+  const processedData = processActivityDurationData(data);
+
+  if (format === "csv") {
+    let csv = "Zone,Count,Min,Q1,Median,Q3,Max\n";
+    processedData.forEach((d) => {
+      csv += `${d.zone},${d.count},${d.min},${d.q1},${d.median},${d.q3},${d.max}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `activity_duration_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+}
+
+// เพิ่ม Event Listeners สำหรับปุ่ม Export
+document.addEventListener("DOMContentLoaded", () => {
+  const exportBtn = document.getElementById("export-activity-data");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      if (currentSearchParams) {
+        fetchActivityDurationData(new URLSearchParams(currentSearchParams))
+          .then((data) => exportActivityData(data))
+          .catch((error) => console.error("Error exporting data:", error));
+      }
+    });
+  }
+});
