@@ -2041,4 +2041,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> dev3

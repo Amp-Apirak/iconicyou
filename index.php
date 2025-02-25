@@ -484,9 +484,21 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
+<<<<<<< HEAD
                     <small class="text-muted"> ระยะเวลาการอยู่ในพื้นที่: <span class="zone-badge" style="background-color: #4e95f4;">โซน 1</span>
                     ทางเข้า-ออก (ICONIC-01)</small>
+=======
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #0d6efd">Zone : 1
+                      ทางเข้า-ออก</span>
+                    <small style="color: #c4dcff">กล้อง : ICONIC-01</small>
+>>>>>>> dev3
                   </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-1">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
                 </div>
                 <div class="card-body chart-container">
                   <div id="activity-chart-1" style="min-height: 350px;"></div>
@@ -500,9 +512,21 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
+<<<<<<< HEAD
                     <small class="text-muted"> ระยะเวลาการอยู่ในพื้นที่: <span class="zone-badge" style="background-color: #4cd3a5;">โซน 2</span>
                     (ICONIC-02)</small>
                   </h5>
+=======
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #20c997">Zone : 2</span>
+                    <small style="color: #b8ffe2">กล้อง : ICONIC-02</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-2">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+>>>>>>> dev3
                 </div>
                 <div class="card-body chart-container">
                   <div id="activity-chart-2" style="min-height: 350px;"></div>
@@ -516,15 +540,31 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
+<<<<<<< HEAD
                     <small class="text-muted"> ระยะเวลาการอยู่ในพื้นที่: <span class="zone-badge" style="background-color: #ffc107;">โซน 3</span>
                       (ICONIC-03)</small>
                   </h5>
+=======
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #ffc107">Zone : 3</span>
+                    <small style="color: #fff3c4">กล้อง : ICONIC-03</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-3">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+>>>>>>> dev3
                 </div>
                 <div class="card-body chart-container">
                   <div id="activity-chart-3" style="min-height: 350px;"></div>
                 </div>
               </div>
+<<<<<<< HEAD
             </div >
+=======
+            </div>
+>>>>>>> dev3
 
             <!-- ICONIC-04 -->
             <div class="col-md-6">
@@ -532,9 +572,21 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
+<<<<<<< HEAD
                     <small class="text-muted"> ระยะเวลาการอยู่ในพื้นที่: <span class="zone-badge" style="background-color: #ff6b6b;">โซน 4</span>
                       (ICONIC-04)</small>
                   </h5>
+=======
+                    ระยะเวลาการอยู่ในพื้นที่: <span style="color: #ff6b6b">Zone : 4</span>
+                    <small style="background-color: #ffc4c4">กล้อง : ICONIC-04</small>
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-activity-4">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                  </div>
+>>>>>>> dev3
                 </div>
                 <div class="card-body chart-container">
                   <div id="activity-chart-4" style="min-height: 350px;"></div>
