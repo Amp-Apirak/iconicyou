@@ -524,7 +524,7 @@
                   <div id="activity-chart-3" style="min-height: 350px;"></div>
                 </div>
               </div>
-            </div>
+            </div >
 
             <!-- ICONIC-04 -->
             <div class="col-md-6">
