@@ -146,7 +146,7 @@
                 <div class="stat-icon people-icon">
                   <i class="fas fa-users"></i>
                 </div>
-                <h5 class="stat-title">จำนวนคนทั้งหมด</h5>
+                <h5 class="stat-title">จำนวนคนทั้งหมด (โซนทางเข้า-ออกประตู)</h5>
                 <div class="stat-number" id="total-people">0</div>
                 <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่</div>
               </div>
@@ -527,6 +527,8 @@
     <script src="js/modal.js"></script>
     <script src="js/form-handler.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/bar-chart-responsive.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 
 
 
