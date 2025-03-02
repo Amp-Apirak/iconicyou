@@ -59,6 +59,14 @@
         </div>
       </div>
 
+      <!-- Hero Image Section แบบปรับปรุงใหม่ -->
+      <div class="dashboard-hero-section mb-4">
+        <div class="hero-image">
+          <img src="assets/img/bg.png" alt="ICONIC YOU" class="img-fluid w-100">
+        </div>
+      </div>
+
+
       <!-- Content Area -->
       <div class="app-content">
         <div class="container-fluid">
@@ -148,7 +156,7 @@
                 </div>
                 <h5 class="stat-title">จำนวนคนทั้งหมด (โซนทางเข้า-ออกประตู)</h5>
                 <div class="stat-number" id="total-people">0</div>
-                <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่</div>
+                <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่/2</div>
               </div>
             </div>
             <div class="col-md-4">
@@ -172,34 +180,6 @@
               </div>
             </div>
           </div>
-
-          <!-- ส่วนแสดงกราฟ -->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h5 class="card-title">
-                    <i class="bi bi-bar-chart-line me-2"></i>กราฟแท่งจำนวนคนเฉลี่ยต่อชั่วโมง
-                    แยกตามโซน/กล้อง
-                  </h5>
-                  <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                      id="download-chart">
-                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
-                    </button>
-                    <!-- <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
-                      <i class="bi bi-arrow-repeat me-1"></i> รีเฟรช
-                    </button> -->
-                  </div>
-                </div>
-                <div class="card-body chart-container">
-                  <!-- กราฟแท่ง - bar-chart -->
-                  <div id="bar-chart" style="min-height: 400px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
 
           <!-- ส่วนแสดงภาพโซนและกล้อง -->
           <div class="row mb-4">
@@ -280,6 +260,35 @@
               </div>
             </div>
           </div>
+
+          <!-- ส่วนแสดงกราฟ -->
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">
+                    <i class="bi bi-bar-chart-line me-2"></i>กราฟแท่งจำนวนคนเฉลี่ยต่อชั่วโมง
+                    แยกตามโซน/กล้อง
+                  </h5>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      id="download-chart">
+                      <i class="bi bi-download me-1"></i> ดาวน์โหลด
+                    </button>
+                    <!-- <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-chart">
+                      <i class="bi bi-arrow-repeat me-1"></i> รีเฟรช
+                    </button> -->
+                  </div>
+                </div>
+                <div class="card-body chart-container">
+                  <!-- กราฟแท่ง - bar-chart -->
+                  <div id="bar-chart" style="min-height: 400px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
 
           <!-- Modal สำหรับแสดงภาพขยาย -->
           <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel"
@@ -414,30 +423,24 @@
                   <h5 class="card-title">
                     <i class="bi bi-graph-up me-2"></i>กราฟจำนวนตามเวลา
                   </h5>
+                  <select class="form-control form-control-sm" id="cameraSelectTimeSeries" style="width: 200px;"></select>
                   <div class="dropdown">
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                      id="dropdownTimeSeriesChart" data-bs-toggle="dropdown"
-                      aria-expanded="false">
+                      id="dropdownTimeSeriesChart" data-bs-toggle="dropdown" aria-expanded="false">
                       <i class="bi bi-gear me-1"></i> ตัวเลือก
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownTimeSeriesChart">
-                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i>
-                          ดาวน์โหลด</a></li>
-                      <li><a class="dropdown-item" href="#"><i
-                            class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-download me-1"></i> ดาวน์โหลด</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat me-1"></i> รีเฟรช</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a class="dropdown-item" href="#"><i
-                            class="bi bi-calendar-range me-1"></i> แสดงข้อมูลรายวัน</a></li>
-                      <li><a class="dropdown-item" href="#"><i
-                            class="bi bi-calendar-week me-1"></i> แสดงข้อมูลรายสัปดาห์</a>
-                      </li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-range me-1"></i> แสดงข้อมูลรายวัน</a></li>
+                      <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-week me-1"></i> แสดงข้อมูลรายสัปดาห์</a></li>
                     </ul>
                   </div>
                 </div>
                 <div class="card-body chart-container">
-                  <!-- time-series-chart -->
                   <div id="time-series-chart" style="min-height: 400px;"></div>
                 </div>
               </div>
@@ -529,9 +532,7 @@
     <script src="js/main.js"></script>
     <script src="js/bar-chart-responsive.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-
-
-
+    <script src="js/sidebar-active.js"></script>
 
 
 </body>
