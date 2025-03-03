@@ -15,7 +15,7 @@ const API_BASE_URL = "https://iconicyou-api.pointit.co.th";
 
 // จำนวนข้อมูลที่ดึงจาก API (Fix ที่ 1000 รายการ)
 // จำกัดจำนวนข้อมูลที่ดึงจาก API เพื่อป้องกันการโหลดข้อมูลมากเกินไป
-const FIXED_LIMIT = 10000;
+const FIXED_LIMIT = 100;
 
 // Interval สำหรับ Realtime Update
 // ตัวแปรสำหรับจัดการการอัปเดตข้อมูลแบบเรียลไทม์
@@ -62,6 +62,12 @@ function showLoading() {
     </div>
   `;
   document.body.appendChild(loading);
+}
+
+function hideLoading() {
+  // ลบ Loading Overlay ออกจาก DOM เมื่อโหลดเสร็จ
+  const loading = document.getElementById("loading-overlay");
+  if (loading) loading.remove();
 }
 
 // ฟังก์ชัน Debug
@@ -307,7 +313,8 @@ async function loadData(isRealtime = false) {
   });
 }
 
-// ฟังก์ชัน Fetch กับ Timeout (ช่วยป้องกันการค้างถ้า API ไม่ตอบสนอง)
+// ฟังก์ชัน Fetch กับ Timeout
+// เรียก API พร้อมกำหนดเวลา Timeout เพื่อป้องกันการค้าง
 async function fetchWithTimeout(url, ms) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ms);
@@ -1212,22 +1219,18 @@ function updateHorizontalBarCharts(data) {
 }
 
 // ฟังก์ชันสำหรับดึงข้อมูล Activity Duration
-// ฟังก์ชันดึงข้อมูลระยะเวลาการอยู่ในโซนจาก API
+// ดึงข้อมูลระยะเวลาการอยู่ในโซนจาก API
 async function fetchActivityDurationData(params) {
   try {
-    // กำหนด compute_id เป็น 7 (People Counting) ถ้าไม่มีใน params
     const computeId = params.get("compute_id") || 7;
     let url = `${API_BASE_URL}/activity_ganttchart?compute_id=${computeId}`;
 
-    // ดึงวันที่เริ่มต้นและสิ้นสุดจาก params
     const startDate = params.get("start_date");
     const endDate = params.get("end_date");
 
-    // ถ้ามีวันที่ระบุใน params ให้เพิ่มใน URL
     if (startDate && endDate) {
       url += `&start_date=${startDate}&end_date=${endDate}`;
     } else {
-      // ถ้าไม่มีวันที่ระบุ ใช้ข้อมูลวันนี้ถึงวันพรุ่งนี้เป็นค่าเริ่มต้น
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1236,17 +1239,17 @@ async function fetchActivityDurationData(params) {
       }`;
     }
 
-    // console.log("Fetching activity data from:", url); // ใช้สำหรับ debug
-    const response = await fetchWithTimeout(url, 5000); // เรียก API ด้วย timeout 5 วินาที
+    const response = await fetchWithTimeout(url, 5000); // Timeout 5 วินาที
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json(); // คืนค่าข้อมูล JSON
+    return await response.json();
   } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลระยะเวลา:", error);
-    return []; // คืนค่า array ว่างถ้ามีข้อผิดพลาด
+    console.error("Error fetching activity duration data:", error);
+    return [];
   }
 }
 
-// ฟังก์ชันประมวลผลข้อมูลสำหรับสร้างกราฟ Box Plot
+// ฟังก์ชันประมวลผลข้อมูล Activity Duration
+// ประมวลผลข้อมูลเพื่อสร้างกราฟ Box Plot แสดงระยะเวลาที่อยู่ในโซน
 function processActivityDurationData(data) {
   const cameraData = {
     "ICONIC-01": [],
@@ -1267,21 +1270,13 @@ function processActivityDurationData(data) {
         item.data.start_time,
         item.data.end_time
       );
-      if (duration > 0) {
-        // Debug: แสดงข้อมูลระยะเวลาใน Console
-        console.log(
-          `Camera: ${item.data.source}, Duration: ${duration} นาที, Start: ${item.data.start_time}, End: ${item.data.end_time}`
-        );
-        const cameraName = item.data.source;
-        if (cameraData[cameraName]) {
-          const cappedDuration = Math.min(duration, 1440);
-          cameraData[cameraName].push({
-            duration: cappedDuration,
-            startTime: new Date(item.data.start_time),
-            endTime: new Date(item.data.end_time),
-          });
-        }
-      }
+      const cameraName = item.data.source;
+      if (cameraData[cameraName])
+        cameraData[cameraName].push({
+          duration: Math.min(duration, 1440), // จำกัดระยะเวลาไม่เกิน 1 วัน
+          startTime: new Date(item.data.start_time),
+          endTime: new Date(item.data.end_time),
+        });
     }
   });
 
@@ -1296,7 +1291,7 @@ function processActivityDurationData(data) {
     const durations = dataPoints.map((d) => d.duration).sort((a, b) => a - b);
     const n = durations.length;
 
-    if (n === 0) {
+    if (n === 0)
       return {
         zone: zoneMapping[camera] || camera,
         min: 0,
@@ -1308,7 +1303,6 @@ function processActivityDurationData(data) {
         camera,
         details: [],
       };
-    }
 
     const stats = {
       zone: zoneMapping[camera] || camera,
@@ -1335,42 +1329,35 @@ function processActivityDurationData(data) {
 }
 
 // ฟังก์ชันคำนวณระยะเวลาเป็นนาที
+// คำนวณระยะเวลาที่ผู้เยี่ยมชมอยู่ในโซนจากเวลาเริ่มและสิ้นสุด
 function calculateDurationInMinutes(start_time, end_time) {
   const start = new Date(start_time);
   const end = new Date(end_time);
-  if (isNaN(start) || isNaN(end)) {
-    console.warn(
-      `วันที่ไม่ถูกต้อง: start_time=${start_time}, end_time=${end_time}`
-    );
-    return 0; // หรือข้ามข้อมูลนี้ในลูป
-  }
-  const durationSeconds = (end - start) / 1000;
-  return Math.round(durationSeconds / 60);
+  return Math.round((end - start) / (1000 * 60));
 }
 
-// ฟังก์ชันอัปเดตกราฟ Box Plot
+// ฟังก์ชันอัปเดตกราฟ Activity Duration (Box Plot)
+// อัปเดตกราฟ Box Plot แสดงการกระจายของระยะเวลาที่ใช้ในแต่ละโซน
 function updateActivityDurationChart(data) {
-  // ประมวลผลข้อมูลจาก API
   const processedData = processActivityDurationData(data);
 
-  // กำหนดตัวเลือกสำหรับกราฟ Box Plot
   const options = {
     series: [
       {
         name: "ระยะเวลา",
         type: "boxPlot",
         data: processedData.map((d) => ({
-          x: d.zone, // ชื่อโซนในแกน X
-          y: [d.min, d.q1, d.median, d.q3, d.max], // ค่าสถิติสำหรับ Box Plot
-          camera: d.camera, // ใช้สำหรับกำหนดสี
+          x: d.zone,
+          y: [d.min, d.q1, d.median, d.q3, d.max],
+          camera: d.camera,
         })),
       },
     ],
     chart: {
       type: "boxPlot",
-      height: 400, // ความสูงของกราฟ
+      height: 400,
       toolbar: {
-        show: true, // แสดง toolbar
+        show: true,
         tools: {
           download: true,
           selection: true,
@@ -1386,13 +1373,12 @@ function updateActivityDurationChart(data) {
       },
     },
     title: {
-      text: "การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน",
+      text: "การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน (หน่วยเป็นนาที)",
       align: "center",
       style: { fontSize: "16px", fontWeight: "bold" },
     },
     plotOptions: {
       boxPlot: {
-        // กำหนดสีของกล่องตามกล้อง
         colors: processedData.map((d) => ({
           upper: getCameraColor(d.camera),
           lower: getCameraColor(d.camera),
@@ -1401,62 +1387,53 @@ function updateActivityDurationChart(data) {
       },
     },
     xaxis: {
-      title: { text: "Zone", style: { fontSize: "14px" } }, // ชื่อแกน X
+      title: { text: "Zone", style: { fontSize: "14px" } },
       labels: {
-        style: { colors: processedData.map((d) => getCameraColor(d.camera)) }, // สีตามกล้อง
+        style: { colors: processedData.map((d) => getCameraColor(d.camera)) },
       },
     },
     yaxis: {
-      title: { text: "ระยะเวลา (นาที)", style: { fontSize: "14px" } }, // ชื่อแกน Y
-      min: 0, // ค่าเริ่มต้นของแกน Y
+      title: { text: "ระยะเวลา (นาที)", style: { fontSize: "14px" } },
+      min: 0,
     },
     tooltip: {
-      // กำหนด Tooltip แบบกำหนดเอง
       custom: ({ seriesIndex, dataPointIndex, w }) => {
         const data = processedData[dataPointIndex];
-        return `
-          <div class="activity-tooltip p-3">
-            <div class="fw-bold mb-2 border-bottom pb-2">${data.zone}</div>
-            <div class="px-3">
-              <div>จำนวนคน: ${data.count} คน</div>
-              <div>ระยะเวลาเฉลี่ย: ${Math.round(data.average)} นาที</div>
-              <div class="mt-2">การกระจายของเวลา:</div>
-              <div class="ps-2">
-                <div>• ต่ำสุด: ${data.min} นาที</div>
-                <div>• Q1 (25%): ${data.q1} นาที</div>
-                <div>• ค่ากลาง: ${data.median} นาที</div>
-                <div>• Q3 (75%): ${data.q3} นาที</div>
-                <div>• สูงสุด: ${data.max} นาที</div>
-              </div>
-            </div>
-          </div>`;
+        return `<div class="activity-tooltip p-3"><div class="fw-bold mb-2 border-bottom pb-2">${
+          data.zone
+        }</div><div class="px-3"><div>จำนวนคน: ${
+          data.count
+        } คน</div><div>ระยะเวลาเฉลี่ย: ${Math.round(
+          data.average
+        )} นาที</div><div class="mt-2">การกระจายของเวลา:</div><div class="ps-2"><div>• ต่ำสุด: ${
+          data.min
+        } นาที</div><div>• Q1 (25%): ${data.q1} นาที</div><div>• กลาง: ${
+          data.median
+        } นาที</div><div>• Q3 (75%): ${data.q3} นาที</div><div>• สูงสุด: ${
+          data.max
+        } นาที</div></div></div></div>`;
       },
     },
-    colors: processedData.map((d) => getCameraColor(d.camera)), // สีของกราฟตามกล้อง
+    colors: processedData.map((d) => getCameraColor(d.camera)),
   };
-  
 
-  // ค้นหา element ที่จะแสดงกราฟ
   const chartEl = document.querySelector("#activity-duration-chart");
   if (!chartEl) {
-    console.log("ไม่พบ element #activity-duration-chart");
+    debug("ไม่พบ element #activity-duration-chart");
     return;
   }
 
   try {
-    if (window.activityDurationChart) {
-      // ถ้ามีกราฟอยู่แล้ว อัปเดตด้วยข้อมูลใหม่
-      console.log("อัปเดตกราฟ Activity Duration ด้วยข้อมูลใหม่");
-      window.activityDurationChart.updateOptions(options);
+    if (activityDurationChart) {
+      debug("อัปเดตกราฟ Activity Duration ด้วยข้อมูลใหม่");
+      activityDurationChart.updateOptions(options);
     } else {
-      // ถ้ายังไม่มีกราฟ สร้างใหม่
-      console.log("สร้างกราฟ Activity Duration ใหม่");
-      window.activityDurationChart = new ApexCharts(chartEl, options);
-      window.activityDurationChart.render();
+      debug("สร้างกราฟ Activity Duration ใหม่");
+      activityDurationChart = new ApexCharts(chartEl, options);
+      activityDurationChart.render();
     }
   } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการอัปเดตกราฟระยะเวลา:", error);
-    // แสดงข้อความแจ้งเตือนถ้ามีข้อผิดพลาด
+    console.error("Error updating activity duration chart:", error);
     showToast(
       `เกิดข้อผิดพลาดในการอัปเดตกราฟระยะเวลา: ${error.message}`,
       "error"
@@ -1464,15 +1441,17 @@ function updateActivityDurationChart(data) {
   }
 }
 
-// ฟังก์ชัน Export ข้อมูลเป็น CSV (ไม่มีการเปลี่ยนแปลง แต่รวมไว้เพื่อความสมบูรณ์)
+// ฟังก์ชัน Export ข้อมูล
+// ส่งออกข้อมูลระยะเวลาการอยู่ในโซนเป็นไฟล์ CSV
 function exportActivityData(data, format = "csv") {
   const processedData = processActivityDurationData(data);
 
   if (format === "csv") {
     let csv = "Zone,Count,Min,Q1,Median,Q3,Max\n";
-    processedData.forEach((d) => {
-      csv += `${d.zone},${d.count},${d.min},${d.q1},${d.median},${d.q3},${d.max}\n`;
-    });
+    processedData.forEach(
+      (d) =>
+        (csv += `${d.zone},${d.count},${d.min},${d.q1},${d.median},${d.q3},${d.max}\n`)
+    );
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1482,43 +1461,9 @@ function exportActivityData(data, format = "csv") {
     }.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    console.log("ส่งออกข้อมูลสำเร็จ");
+    debug("ส่งออกข้อมูลสำเร็จ");
   }
 }
-
-// การเรียกใช้งาน (ตัวอย่างการผูกกับหน้า Dashboard)
-document.addEventListener("DOMContentLoaded", () => {
-  // ตัวอย่างการเรียกข้อมูลและอัปเดตกราฟเมื่อหน้าโหลด
-  const sampleParams = new URLSearchParams({
-    compute_id: "7",
-    start_date: "2025-03-02",
-    end_date: "2025-03-03",
-  });
-
-  fetchActivityDurationData(sampleParams)
-    .then((data) => {
-      updateActivityDurationChart(data); // อัปเดตกราฟด้วยข้อมูลที่ดึงมา
-    })
-    .catch((error) => {
-      console.error("ไม่สามารถดึงข้อมูลได้:", error);
-    });
-
-  // เพิ่ม Event Listener สำหรับปุ่ม Export (ถ้ามี)
-  const exportBtn = document.getElementById("export-activity-data");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", () => {
-      fetchActivityDurationData(sampleParams)
-        .then((data) => exportActivityData(data))
-        .catch((error) => {
-          console.error("เกิดข้อผิดพลาดในการส่งออก:", error);
-          showToast(
-            "เกิดข้อผิดพลาดในการส่งออกข้อมูล: " + error.message,
-            "error"
-          );
-        });
-    });
-  }
-});
 
 // ฟังก์ชันจัดการ Modal
 // จัดการการแสดงภาพโซนใน Modal เมื่อคลิก
@@ -1666,16 +1611,12 @@ function showToast(message, type = "info") {
 // ฟังก์ชันตั้งค่า Responsive Listener
 // ปรับขนาดกราฟตามขนาดหน้าจอเมื่อมีการเปลี่ยนแปลง
 function setupResponsiveListener() {
-  if (typeof _ === "undefined") {
-    console.error("Lodash ไม่ถูกโหลด โปรดตรวจสอบการรวมไฟล์ lodash.min.js");
-    return;
-  }
   window.addEventListener(
     "resize",
     _.debounce(function () {
       if (currentData.length > 0) {
         debug("ปรับขนาดหน้าจอ เรียกอัปเดตกราฟ Bar Chart");
-        updateBarChart(currentData);
+        updateBarChart(currentData); // อัปเดตกราฟแท่งเมื่อหน้าจอเปลี่ยนขนาด
       }
     }, 250)
   );

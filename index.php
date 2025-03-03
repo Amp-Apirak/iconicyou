@@ -156,7 +156,7 @@
                 </div>
                 <h5 class="stat-title">จำนวนคนทั้งหมด (โซนทางเข้า-ออกประตู)</h5>
                 <div class="stat-number" id="total-people">0</div>
-                <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่/2</div>
+                <div class="mt-3 text-muted small">จำนวนการตรวจจับบุคคลภายในพื้นที่</div>
               </div>
             </div>
             <div class="col-md-4">
@@ -487,7 +487,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title">
                     <i class="bi bi-clock-history me-2"></i>
-                    การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน (หน่วยเป็นนาที)
+                    การกระจายของระยะเวลาที่ผู้เยี่ยมชมใช้ในแต่ละโซน (หน่วยเป็นนาที)/วัน
                   </h5>
                   <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="export-activity-data">
@@ -532,7 +532,7 @@
     <script src="js/main.js"></script>
     <script src="js/bar-chart-responsive.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-    <script src="js/sidebar-active.js"></script>
+
 
 
 </body>

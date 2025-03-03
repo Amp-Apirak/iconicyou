@@ -213,7 +213,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="card-body table-container">
+                        <div class="card-body ">
                             <div class="table-responsive">
                                 <table id="activity-table" class="table table-bordered table-hover" style="width:100%">
                                     <thead>
@@ -422,7 +422,7 @@
                         { data: 'duration', title: 'ระยะเวลาในพื้นที่ (นาที)' }
                     ],
                     responsive: true,
-                    pageLength: 100, // แสดง 100 รายการต่อหน้า
+                    pageLength: 50, // แสดง 100 รายการต่อหน้า
                     lengthMenu: [10, 25, 50, 100], // ตัวเลือกจำนวนรายการต่อหน้า
                     autoWidth: false,
                     buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
