@@ -51,12 +51,12 @@
                         <p>Monitoring</p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a href="document-api.php" class="nav-link <?php echo $documentApiActive; ?>">
                         <i class="nav-icon bi bi-file-text"></i>
                         <p>Document API</p>
                     </a>
-                </li>
+                </li> -->
             </ul>
         </nav>
     </div>
