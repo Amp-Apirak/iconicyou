@@ -1,56 +1,44 @@
-// index.js สำหรับ ICONIC YOU Dashboard (ปรับปรุงเพื่อใช้เฉพาะ label = "person")
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 1: การกำหนดตัวแปรหลัก (Global Variables)
+// อธิบาย: ส่วนนี้กำหนดตัวแปรที่ใช้ทั่วทั้งโปรแกรม เช่น instance ของกราฟแต่ละตัว, URL API, และการตั้งค่าพื้นฐาน
+// ---------------------------------------------------------------------------------
+let timeSeriesChart = null; // ตัวแปรสำหรับกราฟเส้น (Time Series Chart) แสดงจำนวนคนตามเวลา
+let cameraPieChart = null; // ตัวแปรสำหรับกราฟวงกลม (Pie Chart) แสดงสัดส่วนจำนวนคนตามกล้อง
+let barChart = null; // ตัวแปรสำหรับกราฟแท่ง (Bar Chart) แสดงจำนวนคนตามชั่วโมงแยกตามกล้อง
+let horizontalBarCharts = [null, null, null, null]; // ตัวแปรสำหรับกราฟแท่งแนวนอน 4 ตัว (Horizontal Bar Charts) แสดงจำนวนคนตามช่วงเวลาของแต่ละกล้อง
+let activityDurationChart = null; // ตัวแปรสำหรับกราฟกล่อง (Box Plot) แสดงการกระจายระยะเวลาที่คนอยู่ในโซน
 
-// ตัวแปรสำหรับเก็บ instance ของกราฟ
-// เก็บตัวแปรสำหรับกราฟแต่ละประเภทเพื่อใช้ในการอัปเดตและแสดงผล
-let timeSeriesChart = null;
-let cameraPieChart = null;
-let barChart = null;
-let horizontalBarCharts = [null, null, null, null];
-let activityDurationChart = null;
-let activityCharts = [null, null, null, null];
+const API_BASE_URL = "https://iconicyou-api.pointit.co.th"; // URL หลักสำหรับเชื่อมต่อ API
+const FIXED_LIMIT = 10000; // จำนวนข้อมูลสูงสุดที่ดึงจาก API
+let realtimeInterval = null; // ตัวแปรสำหรับจัดการการอัปเดตข้อมูลแบบเรียลไทม์
+const REALTIME_UPDATE_INTERVAL = 30000; // ช่วงเวลาอัปเดตเรียลไทม์ทุก 30 วินาที
+let currentData = []; // ตัวแปรเก็บข้อมูลล่าสุดจาก API
+let currentSearchParams = null; // ตัวแปรเก็บพารามิเตอร์การค้นหาปัจจุบัน
+const SHOW_DEBUG = true; // เปิด/ปิดการแสดงข้อมูล Debug
 
-// URL หลักของ API
-// กำหนด URL หลักสำหรับเรียกข้อมูลจากเซิร์ฟเวอร์ API
-const API_BASE_URL = "https://iconicyou-api.pointit.co.th";
+// เพิ่มตัวแปรสถานะสำหรับติดตาม Loading Overlay
+let isLoadingShown = false;
 
-// จำนวนข้อมูลที่ดึงจาก API (Fix ที่ 1000 รายการ)
-// จำกัดจำนวนข้อมูลที่ดึงจาก API เพื่อป้องกันการโหลดข้อมูลมากเกินไป
-const FIXED_LIMIT = 10000;
-
-// Interval สำหรับ Realtime Update
-// ตัวแปรสำหรับจัดการการอัปเดตข้อมูลแบบเรียลไทม์
-let realtimeInterval = null;
-const REALTIME_UPDATE_INTERVAL = 30000; // อัปเดตทุก 30 วินาที
-
-// ตัวแปรเก็บข้อมูลล่าสุด
-// เก็บข้อมูลปัจจุบันที่ดึงจาก API เพื่อใช้ใน Dashboard
-let currentData = [];
-let currentSearchParams = null;
-
-// ตัวแปรควบคุมการแสดง Debug
-// เปิด/ปิดการแสดงข้อมูล Debug ใน Console
-const SHOW_DEBUG = true; // เปิด Debug เพื่อตรวจสอบปัญหา
-
-// Mapping ชื่อกล้อง -> สี
-// กำหนดสีสำหรับแต่ละกล้องให้สอดคล้องกับกราฟอื่นๆ ใน Dashboard
+// การกำหนดสีสำหรับกล้องแต่ละตัว (ใช้ในกราฟทุกประเภท)
 const cameraColorMap = {
-  "ICONIC-01": "#0d6efd", // สีฟ้า (โซน 1)
-  "ICONIC-02": "#20c997", // สีเขียวมิ้นต์
-  "ICONIC-03": "#ffc107", // สีเหลือง
-  "ICONIC-04": "#dc3545", // สีแดง
+  "ICONIC-01": "#0d6efd", // กล้อง 1 (โซน 1) - สีฟ้า
+  "ICONIC-02": "#20c997", // กล้อง 2 (โซน 2) - สีเขียวมิ้นต์
+  "ICONIC-03": "#ffc107", // กล้อง 3 (โซน 3) - สีเหลือง
+  "ICONIC-04": "#dc3545", // กล้อง 4 (โซน 4) - สีแดง
 };
 
-// ฟังก์ชันดึงสีของกล้อง
-// ใช้เพื่อกำหนดสีของกราฟตามชื่อกล้องที่เลือก
+// ฟังก์ชันดึงสีของกล้องตามชื่อ (ใช้ในกราฟทุกตัว)
 function getCameraColor(cameraName) {
   return cameraColorMap[cameraName] || "#999999";
 }
 
-// ฟังก์ชันแสดง/ซ่อน Loading Overlay
-// แสดงหรือซ่อนหน้าจอ Loading เมื่อโหลดข้อมูล
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 2: ฟังก์ชันจัดการ Loading Overlay และ Debug
+// อธิบาย: ส่วนนี้จัดการการแสดง/ซ่อนหน้า Loading และการ Debug ข้อมูลใน Console
+// ---------------------------------------------------------------------------------
 function showLoading() {
-  // ตรวจสอบว่า Loading Overlay ยังไม่ถูกสร้าง
-  if (document.getElementById("loading-overlay")) return;
+  // แสดงหน้าจอ Loading ขณะโหลดข้อมูล
+  if (isLoadingShown || document.getElementById("loading-overlay")) return;
   const loading = document.createElement("div");
   loading.id = "loading-overlay";
   loading.innerHTML = `
@@ -62,25 +50,49 @@ function showLoading() {
     </div>
   `;
   document.body.appendChild(loading);
+  isLoadingShown = true;
+  debug("แสดงหน้า Loading Overlay");
 }
 
-// ฟังก์ชัน Debug
-// ใช้สำหรับแสดงข้อมูล Debug ใน Console หากเปิดใช้งาน
+function hideLoading() {
+  // ซ่อนหน้าจอ Loading หลังโหลดข้อมูลเสร็จ
+  if (!isLoadingShown) {
+    debug("หน้า Loading Overlay ไม่ได้แสดง, ข้ามการลบ");
+    return;
+  }
+  const loading = document.getElementById("loading-overlay");
+  if (loading) {
+    if (document.body.contains(loading)) {
+      document.body.removeChild(loading);
+      debug("ซ่อนหน้า Loading Overlay เรียบร้อย");
+    } else {
+      debug("ไม่พบ element #loading-overlay ใน document.body, ข้ามการลบ");
+    }
+  } else {
+    debug("ไม่พบ element #loading-overlay, ข้ามการลบ");
+  }
+  isLoadingShown = false;
+}
+
 function debug(message, data = null) {
+  // แสดงข้อมูล Debug ใน Console ถ้าเปิด SHOW_DEBUG
   if (!SHOW_DEBUG) return;
   if (data) console.log(`[DEBUG] ${message}:`, data);
   else console.log(`[DEBUG] ${message}`);
 }
 
-// ฟังก์ชันคำนวณวันที่
-// คำนวณช่วงวันที่ตามตัวเลือกในฟอร์ม (เช่น วันนี้, เมื่อวาน, 7 วันล่าสุด)
+
+
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 3: ฟังก์ชันคำนวณวันที่ (Calculate Dates)
+// อธิบาย: ส่วนนี้คำนวณวันที่เริ่มต้นและสิ้นสุดตามตัวเลือกในฟอร์ม (ใช้ในทุกกราฟและสถิติ)
+// ---------------------------------------------------------------------------------
 function calculateDates(range) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   let startDate = new Date(today);
   let endDate = new Date(today);
 
-  // ถ้าเป็น "วันนี้" ให้ตั้งวันที่สิ้นสุดเป็นวันถัดไป
   if (range === "today") {
     startDate.setDate(today.getDate() + 1);
     endDate.setDate(today.getDate() + 2);
@@ -112,17 +124,18 @@ function calculateDates(range) {
   };
 }
 
-// ฟังก์ชันโหลดข้อมูลกล้องและโซน
-// ดึงข้อมูลกล้องและโซนจาก API เพื่อใช้ใน Dropdown
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 4: ฟังก์ชันโหลดข้อมูลกล้องและโซน (Load Cameras and Zones)
+// อธิบาย: ดึงข้อมูลกล้องจาก API เพื่อใช้ใน Dropdown ของกราฟ Time Series และส่วนอื่นๆ
+// ---------------------------------------------------------------------------------
 async function loadCamerasAndZones() {
   try {
     debug("เริ่มโหลดข้อมูลกล้องและโซน");
     const computeId = document.querySelector("#compute_id").value;
-
     const url = `${API_BASE_URL}/analytics/?compute_id=${computeId}&limit=${FIXED_LIMIT}`;
     debug("API URL:", url);
 
-    const response = await fetchWithTimeout(url, 5000); // Timeout 5 วินาที
+    const response = await fetchWithTimeout(url, 5000);
     if (!response.ok)
       throw new Error(`ไม่สามารถเชื่อมต่อกับ API ได้ (${response.status})`);
 
@@ -156,7 +169,6 @@ async function loadCamerasAndZones() {
       }
     });
 
-    // เก็บข้อมูลกล้องทั้งหมดจาก API
     const allCameras = Array.from(cameraSet).filter(
       (cam) => cam && cameraColorMap.hasOwnProperty(cam)
     );
@@ -170,41 +182,37 @@ async function loadCamerasAndZones() {
       });
     }
 
-    // อัปเดต Dropdown ของ Time Series Chart ด้วยข้อมูลกล้องทั้งหมด
-    updateCameraSelect(allCameras);
+    updateCameraSelect(allCameras); // อัปเดต Dropdown สำหรับกราฟ Time Series
   } catch (error) {
     console.error("Error loading cameras/zones:", error);
     showToast("ไม่สามารถโหลดข้อมูลกล้อง/โซนได้: " + error.message, "error");
   }
 }
 
-// ฟังก์ชันโหลดข้อมูล
-// ดึงข้อมูลจาก API เพื่ออัปเดต Dashboard
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 5: ฟังก์ชันโหลดข้อมูลหลัก (Load Data)
+// อธิบาย: ดึงข้อมูลจาก API เพื่อใช้ในทุกกราฟและ Card สถิติ โดยกรองเฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 async function loadData(isRealtime = false) {
   return new Promise((resolve, reject) => {
     try {
       if (!isRealtime) showLoading();
-
       debug("เริ่มโหลดข้อมูลตามเงื่อนไข" + (isRealtime ? " (realtime)" : ""));
-
       const form = document.getElementById("search-form");
       if (!form) throw new Error("ไม่พบฟอร์มค้นหา");
 
       const formData = new FormData(form);
       const computeId = formData.get("compute_id") || 7;
-
       let url = `${API_BASE_URL}/getAnalytics/?compute_id=${computeId}&limit=${FIXED_LIMIT}`;
       const params = new URLSearchParams();
 
-      // ดึงข้อมูลจากทุกกล้องหากไม่ได้ระบุ source_name
       if (!formData.get("source_name")) {
-        params.append("source_name", ""); // ดึงข้อมูลจากทุกกล้อง
+        params.append("source_name", "");
       } else {
         params.append("source_name", formData.get("source_name"));
       }
 
       const dateRange = formData.get("date_range") || "today";
-
       if (dateRange !== "custom") {
         const dates = calculateDates(dateRange);
         params.set("start_date", dates.startDate);
@@ -235,10 +243,9 @@ async function loadData(isRealtime = false) {
 
       currentSearchParams = params.toString();
       if (currentSearchParams) url += `&${currentSearchParams}`;
-
       debug("API URL สำหรับข้อมูล:", url);
 
-      fetchWithTimeout(url, 10000) // Timeout 10 วินาที
+      fetchWithTimeout(url, 10000)
         .then((response) => {
           if (!response.ok)
             throw new Error(
@@ -268,7 +275,6 @@ async function loadData(isRealtime = false) {
             return;
           }
 
-          // ตรวจสอบข้อมูลจาก API ให้ละเอียดขึ้น
           if (
             !data.every(
               (item) => item && item.data && item.data.analyticsResult
@@ -278,7 +284,7 @@ async function loadData(isRealtime = false) {
           }
 
           currentData = data;
-          updateDashboard(data, isRealtime);
+          updateDashboard(data, isRealtime); // อัปเดตทุกกราฟและ Card
           resolve();
         })
         .catch((error) => {
@@ -307,7 +313,10 @@ async function loadData(isRealtime = false) {
   });
 }
 
-// ฟังก์ชัน Fetch กับ Timeout (ช่วยป้องกันการค้างถ้า API ไม่ตอบสนอง)
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 6: ฟังก์ชัน Fetch ข้อมูลด้วย Timeout
+// อธิบาย: ใช้สำหรับดึงข้อมูลจาก API พร้อมตั้งค่า Timeout ป้องกันการค้าง
+// ---------------------------------------------------------------------------------
 async function fetchWithTimeout(url, ms) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ms);
@@ -321,30 +330,32 @@ async function fetchWithTimeout(url, ms) {
   }
 }
 
-// ฟังก์ชันแสดงข้อความไม่พบข้อมูล
-// แสดงข้อความเมื่อไม่มีข้อมูลหรือเกิดข้อผิดพลาด
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 7: ฟังก์ชันแสดงข้อความเมื่อไม่มีข้อมูล (Display No Data)
+// อธิบาย: แสดงข้อความในกราฟทุกตัวเมื่อไม่มีข้อมูลหรือเกิดข้อผิดพลาด
+// ---------------------------------------------------------------------------------
 function displayNoData(errorMessage = null) {
   debug("แสดงข้อความไม่พบข้อมูล" + (errorMessage ? `: ${errorMessage}` : ""));
 
   if (timeSeriesChart) {
     debug("ล้างข้อมูลกราฟ Time Series");
-    timeSeriesChart.updateOptions({ series: [{ data: [] }] });
+    timeSeriesChart.updateOptions({ series: [{ data: [] }] }); // กราฟเส้น
   }
   if (cameraPieChart) {
     debug("ล้างข้อมูลกราฟ Pie Chart");
-    cameraPieChart.updateOptions({ series: [], labels: [] });
+    cameraPieChart.updateOptions({ series: [], labels: [] }); // กราฟวงกลม
   }
   if (barChart) {
     debug("ล้างข้อมูลกราฟ Bar Chart");
     barChart.updateOptions({
       series: [{ data: [] }],
       xaxis: { categories: [] },
-    });
+    }); // กราฟแท่ง
   }
   horizontalBarCharts.forEach((chart, index) => {
     if (chart) {
       debug(`ล้างข้อมูลกราฟ Horizontal Bar Chart ${index + 1}`);
-      chart.updateOptions({ series: [{ data: [] }] });
+      chart.updateOptions({ series: [{ data: [] }] }); // กราฟแท่งแนวนอนทั้ง 4 ตัว
     }
   });
 
@@ -363,18 +374,19 @@ function displayNoData(errorMessage = null) {
     }
   });
 
-  document.getElementById("total-people").textContent = "0";
-  document.getElementById("total-cameras").textContent = "0";
-  document.getElementById("total-zones").textContent = "0";
+  document.getElementById("total-people").textContent = "0"; // Card จำนวนคน
+  document.getElementById("total-cameras").textContent = "0"; // Card จำนวนกล้อง
+  document.getElementById("total-zones").textContent = "0"; // Card จำนวนโซน
 }
 
-// ฟังก์ชัน Realtime Update
-// เริ่มการอัปเดตข้อมูลแบบเรียลไทม์
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 8: ฟังก์ชันจัดการ Realtime Update
+// อธิบาย: ควบคุมการอัปเดตข้อมูลแบบเรียลไทม์สำหรับทุกกราฟและ Card
+// ---------------------------------------------------------------------------------
 function startRealtimeUpdate() {
   debug("เริ่มการอัปเดตแบบ Realtime");
   stopRealtimeUpdate();
   document.getElementById("realtime-status").style.display = "inline-block";
-
   realtimeInterval = setInterval(() => {
     loadData(true).catch((error) =>
       console.error("Realtime update failed:", error)
@@ -382,8 +394,6 @@ function startRealtimeUpdate() {
   }, REALTIME_UPDATE_INTERVAL);
 }
 
-// หยุดการอัปเดตแบบ Realtime
-// หยุดการเรียกข้อมูลแบบเรียลไทม์เมื่อไม่ต้องการ
 function stopRealtimeUpdate() {
   debug("หยุดการอัปเดตแบบ Realtime");
   if (realtimeInterval) {
@@ -393,12 +403,13 @@ function stopRealtimeUpdate() {
   document.getElementById("realtime-status").style.display = "none";
 }
 
-// ฟังก์ชันอัปเดต Dashboard
-// อัปเดตข้อมูลทั้งหมดใน Dashboard รวมถึงกราฟและสถิติ
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 9: ฟังก์ชันอัปเดต Dashboard
+// อธิบาย: อัปเดตข้อมูลทั้งหมดใน Dashboard รวมถึงทุกกราฟและ Card สถิติ
+// ---------------------------------------------------------------------------------
 function updateDashboard(data, isRealtime = false) {
   try {
     debug("อัปเดต Dashboard" + (isRealtime ? " (realtime)" : ""));
-
     if (!Array.isArray(data)) {
       console.error("ข้อมูลที่ได้รับไม่ใช่ array:", data);
       displayNoData();
@@ -411,24 +422,24 @@ function updateDashboard(data, isRealtime = false) {
     const errorElements = document.querySelectorAll(".error-message");
     errorElements.forEach((element) => element.remove());
 
-    updateTimeSeriesChart(data); // อัปเดตกราฟจำนวนตามเวลา
-    updatePieChart(data); // อัปเดตกราฟวงกลม
-    updateBarChart(data); // อัปเดตกราฟแท่ง
-    updateHorizontalBarCharts(data); // อัปเดตกราฟแท่งแนวนอน
-    updateStats(data); // อัปเดตสถิติ
+    updateTimeSeriesChart(data); // อัปเดตกราฟเส้น (Time Series Chart)
+    updatePieChart(data); // อัปเดตกราฟวงกลม (Pie Chart)
+    updateBarChart(data); // อัปเดตกราฟแท่ง (Bar Chart)
+    updateHorizontalBarCharts(data); // อัปเดตกราฟแท่งแนวนอน 4 ตัว (Horizontal Bar Charts)
+    updateStats(data); // อัปเดต Card สถิติ (จำนวนคน, กล้อง, โซน)
 
     if (currentSearchParams) {
       fetchActivityDurationData(new URLSearchParams(currentSearchParams))
         .then((activityData) => {
           if (Array.isArray(activityData))
-            updateActivityDurationChart(activityData);
+            updateActivityDurationChart(activityData); // อัปเดตกราฟกล่อง (Box Plot)
         })
         .catch((error) =>
           console.error("Error updating activity duration chart:", error)
         );
     }
 
-    updateLastUpdatedTime();
+    updateLastUpdatedTime(); // อัปเดตเวลาล่าสุดที่ข้อมูลถูกอัปเดต
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการอัปเดต Dashboard:", error);
     if (!isRealtime)
@@ -439,8 +450,10 @@ function updateDashboard(data, isRealtime = false) {
   }
 }
 
-// ฟังก์ชันอัปเดตเวลา
-// อัปเดตเวลาล่าสุดที่ข้อมูลถูกอัปเดต
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 10: ฟังก์ชันอัปเดตเวลา (Last Updated Time)
+// อธิบาย: อัปเดตเวลาล่าสุดที่ข้อมูลใน Dashboard ถูกอัปเดต
+// ---------------------------------------------------------------------------------
 function updateLastUpdatedTime() {
   const now = new Date();
   const timeString = now.toLocaleTimeString("th-TH");
@@ -448,8 +461,10 @@ function updateLastUpdatedTime() {
   if (lastUpdatedElement) lastUpdatedElement.textContent = timeString;
 }
 
-// ฟังก์ชันคำนวณและแสดงสถิติ
-// คำนวณและแสดงจำนวนคน, กล้อง, และโซนใน Dashboard โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 11: ฟังก์ชันอัปเดต Card สถิติ (Update Stats)
+// อธิบาย: อัปเดตข้อมูลใน Card จำนวนคน, จำนวนกล้อง, และจำนวนโซน โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 function updateStats(data) {
   let totalPeople = 0;
   let cameraSet = new Set();
@@ -462,12 +477,10 @@ function updateStats(data) {
       if (item?.data?.analyticsResult?.objsInfo) {
         if (Array.isArray(item.data.analyticsResult.objsInfo)) {
           item.data.analyticsResult.objsInfo.forEach((obj) => {
-            // ใช้เฉพาะข้อมูลที่มี label = "person"
             if (obj.label === "person")
               totalPeople += item.data.analyticsResult.cnt || 0;
           });
         } else if (item.data.analyticsResult.objsInfo.label === "person") {
-          // ใช้เฉพาะข้อมูลที่มี label = "person"
           totalPeople += item.data.analyticsResult.cnt || 0;
         }
       }
@@ -477,27 +490,27 @@ function updateStats(data) {
   totalPeople = Math.round(totalPeople / 2);
 
   document.getElementById("total-people").textContent =
-    totalPeople.toLocaleString();
+    totalPeople.toLocaleString(); // Card จำนวนคน
   document.getElementById("total-cameras").textContent =
-    cameraSet.size.toLocaleString();
+    cameraSet.size.toLocaleString(); // Card จำนวนกล้อง
   document.getElementById("total-zones").textContent =
-    cameraSet.size.toLocaleString();
+    cameraSet.size.toLocaleString(); // Card จำนวนโซน
 
   debug("อัปเดตสถิติเรียบร้อย  ", { totalPeople, cameras: cameraSet.size });
 }
 
-// ฟังก์ชันอัปเดต Dropdown ของกล้องสำหรับ Time Series Chart (แสดงชื่อกล้องทั้งหมด)
-let selectedCameraForTimeSeries = "ICONIC-01"; // ตั้งค่า Default เป็นกล้อง 1 (โซน 1)
-
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 12: ฟังก์ชันอัปเดต Dropdown ของ Time Series Chart
+// อธิบาย: อัปเดต Dropdown เลือกกล้องสำหรับกราฟเส้น (Time Series Chart)
+// ---------------------------------------------------------------------------------
+let selectedCameraForTimeSeries = "ICONIC-01"; // ค่าเริ่มต้นสำหรับกราฟเส้น
 function updateCameraSelect(cameras = null) {
-  // อัปเดต Dropdown เพื่อแสดงชื่อกล้องทั้งหมดจาก API หรือ currentData
   const cameraSelect = document.getElementById("cameraSelectTimeSeries");
   if (!cameraSelect) {
     debug("ไม่พบ element #cameraSelectTimeSeries");
     return;
   }
 
-  // ใช้ข้อมูลกล้องจากพารามิเตอร์หรือจาก currentData หากไม่ระบุ
   let cameraList = cameras;
   if (!cameraList) {
     cameraList = [
@@ -514,35 +527,33 @@ function updateCameraSelect(cameras = null) {
     return;
   }
 
-  // สร้างตัวเลือกสำหรับแต่ละกล้อง โดยเรียงตามลำดับใน cameraColorMap
   const cameraOrder = ["ICONIC-01", "ICONIC-02", "ICONIC-03", "ICONIC-04"];
   cameraList.sort((a, b) => cameraOrder.indexOf(a) - cameraOrder.indexOf(b));
 
-  cameraSelect.innerHTML = ""; // ล้างตัวเลือกเดิม
+  cameraSelect.innerHTML = "";
   cameraList.forEach((camera) => {
     cameraSelect.innerHTML += `<option value="${camera}">${camera}</option>`;
   });
 
-  // ตั้งค่า Default เป็น ICONIC-01 หากมีในรายการ
   if (cameraList.includes("ICONIC-01")) {
     cameraSelect.value = "ICONIC-01";
   } else if (cameraList.length > 0) {
-    cameraSelect.value = cameraList[0]; // ถ้าไม่มี ICONIC-01 ใช้กล้องแรก
+    cameraSelect.value = cameraList[0];
   }
 
-  // อัปเดตค่า selectedCameraForTimeSeries
   selectedCameraForTimeSeries = cameraSelect.value;
   debug(
     "อัปเดต Dropdown กล้องสำเร็จ, ค่าเริ่มต้น: " + selectedCameraForTimeSeries
   );
 }
 
-// ฟังก์ชันอัปเดตกราฟ Time Series (แสดงข้อมูลตามกล้องที่เลือก โดยใช้เฉพาะ label = "person")
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 13: ฟังก์ชันอัปเดตกราฟเส้น (Time Series Chart)
+// อธิบาย: อัปเดตกราฟเส้นแสดงจำนวนคนตามเวลาสำหรับกล้องที่เลือก โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 function updateTimeSeriesChart(data) {
-  // อัปเดตกราฟจำนวนตามเวลาด้วยข้อมูลจากกล้องที่เลือก โดยใช้เฉพาะ label = "person"
   try {
     debug("อัปเดตกราฟเส้น Time Series  ");
-
     if (!Array.isArray(data) || data.length === 0) {
       debug("ไม่พบข้อมูลสำหรับกราฟเส้น");
       if (timeSeriesChart)
@@ -550,7 +561,6 @@ function updateTimeSeriesChart(data) {
       return;
     }
 
-    // กรองข้อมูลเฉพาะกล้องที่เลือกและ label = "person"
     let filteredData = data.filter(
       (item) =>
         item?.data?.sourceName === selectedCameraForTimeSeries &&
@@ -587,7 +597,6 @@ function updateTimeSeriesChart(data) {
           return null;
         let cnt = 0;
         if (Array.isArray(item.data.analyticsResult.objsInfo)) {
-          // รวม cnt จาก objsInfo ที่มี label = "person"
           cnt = item.data.analyticsResult.objsInfo
             .filter((obj) => obj.label === "person")
             .reduce(
@@ -595,7 +604,6 @@ function updateTimeSeriesChart(data) {
               0
             );
         } else if (item.data.analyticsResult.objsInfo.label === "person") {
-          // ใช้ cnt หาก objsInfo เป็น object เดียวและ label = "person"
           cnt = item.data.analyticsResult.cnt || 0;
         }
         const time = new Date(item.time).getTime();
@@ -605,10 +613,7 @@ function updateTimeSeriesChart(data) {
 
     const options = {
       series: [
-        {
-          name: `จำนวนคน (${selectedCameraForTimeSeries})`, // แสดงชื่อกล้องที่เลือก
-          data: chartData,
-        },
+        { name: `จำนวนคน (${selectedCameraForTimeSeries})`, data: chartData },
       ],
       chart: {
         type: "area",
@@ -632,16 +637,12 @@ function updateTimeSeriesChart(data) {
         labels: { datetimeUTC: false, format: "dd/MM/yy HH:mm" },
         title: { text: "เวลา" },
       },
-      yaxis: {
-        title: { text: "จำนวนคน" },
-        min: 0,
-        forceNiceScale: true,
-      },
+      yaxis: { title: { text: "จำนวนคน" }, min: 0, forceNiceScale: true },
       tooltip: {
         x: { format: "dd/MM/yy HH:mm" },
         y: { formatter: (value) => value + " คน" },
       },
-      colors: [getCameraColor(selectedCameraForTimeSeries)], // ใช้สีตามกล้องที่เลือก
+      colors: [getCameraColor(selectedCameraForTimeSeries)],
       title: {
         text: `จำนวนคนตามช่วงเวลา (${selectedCameraForTimeSeries})  `,
         align: "center",
@@ -681,7 +682,10 @@ function updateTimeSeriesChart(data) {
   }
 }
 
-// ฟังก์ชันอัปเดตกราฟ Pie Chart (ใช้เฉพาะ label = "person")
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 14: ฟังก์ชันอัปเดตกราฟวงกลม (Pie Chart)
+// อธิบาย: อัปเดตกราฟวงกลมแสดงสัดส่วนจำนวนคนตามกล้องทั้งหมด โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 function updatePieChart(data) {
   debug("อัปเดตกราฟวงกลม Pie Chart  ");
 
@@ -691,12 +695,10 @@ function updatePieChart(data) {
     let cnt = 0;
     if (item?.data?.analyticsResult?.objsInfo) {
       if (Array.isArray(item.data.analyticsResult.objsInfo)) {
-        // รวม cnt จาก objsInfo ที่มี label = "person"
         cnt = item.data.analyticsResult.objsInfo
           .filter((obj) => obj.label === "person")
           .reduce((sum, obj) => sum + (item.data.analyticsResult.cnt || 0), 0);
       } else if (item.data.analyticsResult.objsInfo.label === "person") {
-        // ใช้ cnt หาก objsInfo เป็น object เดียวและ label = "person"
         cnt = item.data.analyticsResult.cnt || 0;
       }
     }
@@ -766,7 +768,10 @@ function updatePieChart(data) {
   }
 }
 
-// ฟังก์ชันอัปเดตกราฟแท่ง (Bar Chart) แบบ Responsive (ใช้เฉพาะ label = "person")
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 15: ฟังก์ชันอัปเดตกราฟแท่ง (Bar Chart)
+// อธิบาย: อัปเดตกราฟแท่งแสดงจำนวนคนตามชั่วโมงแยกตามกล้อง โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 function updateBarChart(data) {
   debug("อัปเดตกราฟแท่ง Bar Chart แบบ responsive  ");
   const isSmallScreen = window.innerWidth < 768;
@@ -786,12 +791,10 @@ function updateBarChart(data) {
     let cnt = 0;
     if (item?.data?.analyticsResult?.objsInfo) {
       if (Array.isArray(item.data.analyticsResult.objsInfo)) {
-        // รวม cnt จาก objsInfo ที่มี label = "person"
         cnt = item.data.analyticsResult.objsInfo
           .filter((obj) => obj.label === "person")
           .reduce((sum, obj) => sum + (item.data.analyticsResult.cnt || 0), 0);
       } else if (item.data.analyticsResult.objsInfo.label === "person") {
-        // ใช้ cnt หาก objsInfo เป็น object เดียวและ label = "person"
         cnt = item.data.analyticsResult.cnt || 0;
       }
     }
@@ -837,10 +840,7 @@ function updateBarChart(data) {
       enabled: !isSmallScreen,
       formatter: (val) => (val > 0 ? val : ""),
       offsetY: -20,
-      style: {
-        fontSize: isSmallScreen ? "8px" : "12px",
-        colors: ["#304758"],
-      },
+      style: { fontSize: isSmallScreen ? "8px" : "12px", colors: ["#304758"] },
     },
     xaxis: {
       categories: hourKeys,
@@ -899,12 +899,13 @@ function updateBarChart(data) {
   }
 }
 
-// ฟังก์ชันอัปเดตกราฟแท่งแนวนอน (ใช้เฉพาะ label = "person")
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 16: ฟังก์ชันอัปเดตกราฟแท่งแนวนอน (Horizontal Bar Charts)
+// อธิบาย: อัปเดตกราฟแท่งแนวนอน 4 ตัว แสดงจำนวนคนตามช่วงเวลา (06:00 - 21:00) สำหรับแต่ละกล้อง โดยใช้เฉพาะ label = "person"
+// ---------------------------------------------------------------------------------
 function updateHorizontalBarCharts(data) {
-  // แสดงข้อความ debug
   debug("อัปเดตกราฟแท่งแนวนอนแบบรายชั่วโมง (06:00 - 21:00)");
 
-  // กำหนดช่วงเวลารายชั่วโมงตั้งแต่ 06:00 - 21:00
   const timeRanges = [
     "06:00 - 07:00",
     "07:00 - 08:00",
@@ -922,60 +923,39 @@ function updateHorizontalBarCharts(data) {
     "19:00 - 20:00",
     "20:00 - 21:00",
   ];
-
-  // สร้าง Set เพื่อเก็บชื่อกล้องที่ไม่ซ้ำกัน
   const cameraSet = new Set();
 
-  // วนลูปข้อมูลเพื่อรวบรวมชื่อกล้องที่มีข้อมูล
   data.forEach((item) => {
-    // ตรวจสอบว่าข้อมูลที่ได้รับมีโครงสร้างที่ถูกต้อง
     if (!item || !item.data || !item.data.analyticsResult) return;
-
-    // ดึงชื่อกล้องจากข้อมูล
     const cameraName = item.data.sourceName || "ไม่ระบุ";
-
-    // ตรวจสอบข้อมูลการตรวจจับคน
     let cnt = 0;
     if (item?.data?.analyticsResult?.objsInfo) {
       if (Array.isArray(item.data.analyticsResult.objsInfo)) {
-        // กรณีมีหลายวัตถุ ให้กรองเฉพาะที่เป็น "person" และรวมจำนวน
         cnt = item.data.analyticsResult.objsInfo
           .filter((obj) => obj.label === "person")
           .reduce((sum, obj) => sum + (item.data.analyticsResult.cnt || 0), 0);
       } else if (item.data.analyticsResult.objsInfo.label === "person") {
-        // กรณีมีวัตถุเดียว ถ้าเป็น "person" ให้นับจำนวน
         cnt = item.data.analyticsResult.cnt || 0;
       }
     }
-
-    // ถ้ามีการตรวจจับคน (cnt > 0) ให้เพิ่มชื่อกล้องเข้าไปใน Set
     if (cnt > 0) cameraSet.add(cameraName);
   });
 
-  // แปลง Set เป็น Array เพื่อให้สามารถจัดเรียงได้
   let cameras = Array.from(cameraSet);
-
-  // กำหนดลำดับการแสดงผลของกล้อง
   const cameraOrder = ["ICONIC-01", "ICONIC-02", "ICONIC-03", "ICONIC-04"];
-
-  // เรียงลำดับกล้องตาม cameraOrder
   cameras.sort(
     (a, b) =>
       cameraOrder.indexOf(a) - cameraOrder.indexOf(b) ||
       (cameraOrder.indexOf(a) === -1 ? 1 : -1)
   );
 
-  // ตรวจสอบว่ามีข้อมูลกล้องหรือไม่
   if (cameras.length === 0) {
-    // ถ้าไม่มีข้อมูลกล้อง ให้แสดงข้อความ "ไม่พบข้อมูล" ในทุกกราฟ
     horizontalBarCharts.forEach((chart, index) => {
       if (chart) {
         debug(`ล้างข้อมูลกราฟ Horizontal Bar Chart ${index + 1}`);
         chart.updateOptions({ series: [{ data: [] }] });
-
         const containerId = `#horizontal-bar-chart-${index + 1}`;
         const chartEl = document.querySelector(containerId);
-
         if (chartEl && !chartEl.querySelector(".no-data")) {
           const noDataDiv = document.createElement("div");
           noDataDiv.className = "no-data";
@@ -987,27 +967,18 @@ function updateHorizontalBarCharts(data) {
     return;
   }
 
-  // จำกัดจำนวนกล้องที่จะแสดงไม่เกิน 4 ตัว
   const cameraLimit = Math.min(cameras.length, 4);
 
-  // วนลูปสร้างกราฟสำหรับแต่ละกล้อง
   for (let index = 0; index < cameraLimit; index++) {
     const cam = cameras[index];
-
-    // สร้างอาร์เรย์เก็บข้อมูลจำนวนคนตามช่วงเวลา โดยเริ่มต้นให้ทุกช่วงเวลาเป็น 0
     const seriesData = Array(timeRanges.length).fill(0);
-
-    // กรองข้อมูลเฉพาะกล้องที่กำลังพิจารณา
     const cameraData = data.filter((item) => item?.data?.sourceName === cam);
 
-    // วนลูปข้อมูลของกล้องนี้
     cameraData.forEach((item) => {
       if (item?.time && item?.data?.analyticsResult?.cnt) {
-        // ตรวจสอบข้อมูลการตรวจจับคน
         let cnt = 0;
         if (item?.data?.analyticsResult?.objsInfo) {
           if (Array.isArray(item.data.analyticsResult.objsInfo)) {
-            // กรณีมีหลายวัตถุ ให้กรองเฉพาะที่เป็น "person" และรวมจำนวน
             cnt = item.data.analyticsResult.objsInfo
               .filter((obj) => obj.label === "person")
               .reduce(
@@ -1015,24 +986,14 @@ function updateHorizontalBarCharts(data) {
                 0
               );
           } else if (item.data.analyticsResult.objsInfo.label === "person") {
-            // กรณีมีวัตถุเดียว ถ้าเป็น "person" ให้นับจำนวน
             cnt = item.data.analyticsResult.cnt || 0;
           }
         }
-
-        // ถ้ามีการตรวจจับคน (cnt > 0)
         if (cnt > 0) {
-          // แปลงเวลาจาก string เป็น Date object
           const time = new Date(item.time);
-          // ดึงชั่วโมงจากเวลา
           const hour = time.getHours();
-
-          // ตรวจสอบว่าอยู่ในช่วง 06:00 - 21:00 หรือไม่
           if (hour >= 6 && hour < 21) {
-            // คำนวณ index ของช่วงเวลา (06:00 = 0, 07:00 = 1, ...)
             const rangeIndex = hour - 6;
-
-            // เพิ่มจำนวนคนในช่วงเวลาที่เหมาะสม
             if (rangeIndex >= 0 && rangeIndex < seriesData.length) {
               seriesData[rangeIndex] += cnt;
             }
@@ -1041,17 +1002,11 @@ function updateHorizontalBarCharts(data) {
       }
     });
 
-    // กำหนดค่า options สำหรับกราฟ
     const options = {
-      series: [
-        {
-          name: "จำนวนคน",
-          data: seriesData,
-        },
-      ],
+      series: [{ name: "จำนวนคน", data: seriesData }],
       chart: {
         type: "bar",
-        height: 500, // เพิ่มความสูงเพื่อรองรับข้อมูลจำนวนมากขึ้น
+        height: 500,
         toolbar: {
           show: true,
           tools: {
@@ -1079,15 +1034,9 @@ function updateHorizontalBarCharts(data) {
         formatter: (val) => val,
         offsetX: 0,
       },
-      xaxis: {
-        categories: timeRanges,
-        title: { text: "จำนวนคน" },
-      },
+      xaxis: { categories: timeRanges, title: { text: "จำนวนคน" } },
       yaxis: {
-        labels: {
-          show: true,
-          style: { fontSize: "10px" }, // ลดขนาดตัวอักษรเนื่องจากมีข้อมูลมากขึ้น
-        },
+        labels: { show: true, style: { fontSize: "10px" } },
         title: { text: "ช่วงเวลา" },
       },
       title: {
@@ -1099,7 +1048,7 @@ function updateHorizontalBarCharts(data) {
         x: { formatter: (val) => val },
         y: { formatter: (val) => val + " คน" },
       },
-      colors: [getCameraColor(cam)], // ดึงสีตามกล้อง
+      colors: [getCameraColor(cam)],
       noData: {
         text: "ไม่พบข้อมูล",
         align: "center",
@@ -1107,46 +1056,28 @@ function updateHorizontalBarCharts(data) {
         offsetX: 0,
         offsetY: 0,
       },
-      // เพิ่มความสามารถในการปรับขนาดตามหน้าจอ
       responsive: [
         {
-          breakpoint: 768, // สำหรับหน้าจอขนาดเล็ก
+          breakpoint: 768,
           options: {
-            chart: {
-              height: 600, // เพิ่มความสูงสำหรับหน้าจอเล็ก
-            },
-            plotOptions: {
-              bar: {
-                barHeight: "60%", // ลดความสูงของแท่งเพื่อให้พอดีกับหน้าจอ
-              },
-            },
-            yaxis: {
-              labels: {
-                style: {
-                  fontSize: "8px", // ลดขนาดตัวอักษรสำหรับหน้าจอเล็ก
-                },
-              },
-            },
+            chart: { height: 600 },
+            plotOptions: { bar: { barHeight: "60%" } },
+            yaxis: { labels: { style: { fontSize: "8px" } } },
           },
         },
       ],
     };
 
-    // ค้นหา element ที่จะใช้แสดงกราฟ
     const containerId = `#horizontal-bar-chart-${index + 1}`;
     const chartEl = document.querySelector(containerId);
-
-    // ตรวจสอบว่าพบ element หรือไม่
     if (!chartEl) {
       debug(`ไม่พบ element ${containerId}`);
       continue;
     }
 
-    // ลบข้อความ "ไม่พบข้อมูล" ถ้ามี
     const noDataEl = chartEl.querySelector(".no-data");
     if (noDataEl) noDataEl.remove();
 
-    // อัปเดตหัวข้อกราฟให้แสดงชื่อกล้อง
     const cardHeader = chartEl
       .closest(".card")
       ?.querySelector(".card-header .card-title");
@@ -1156,20 +1087,14 @@ function updateHorizontalBarCharts(data) {
       )}">${cam}</span> (รายชั่วโมง)`;
     }
 
-    // สร้างหรืออัปเดตกราฟ
     try {
       if (horizontalBarCharts[index]) {
         debug(`อัปเดตกราฟ Horizontal Bar Chart ${index + 1} ด้วยข้อมูลใหม่`);
-        // ทำลายกราฟเดิมก่อนสร้างใหม่ เพื่อป้องกันปัญหา
         horizontalBarCharts[index].destroy();
       }
-
-      // สร้างกราฟใหม่ด้วย ApexCharts
       horizontalBarCharts[index] = new ApexCharts(chartEl, options);
-      // แสดงกราฟ
       horizontalBarCharts[index].render();
     } catch (error) {
-      // จัดการข้อผิดพลาดที่อาจเกิดขึ้น
       console.error(`Error updating horizontal bar chart ${index + 1}:`, error);
       showToast(
         `เกิดข้อผิดพลาดในการอัปเดตกราฟแท่งแนวนอน ${index + 1}: ${
@@ -1180,26 +1105,19 @@ function updateHorizontalBarCharts(data) {
     }
   }
 
-  // จัดการกับกล้องที่ไม่มีข้อมูล (กรณีมีกล้องน้อยกว่า 4 ตัว)
   for (let i = cameraLimit; i < 4; i++) {
-    // ถ้ามีกราฟอยู่แล้ว
     if (horizontalBarCharts[i]) {
       const containerId = `#horizontal-bar-chart-${i + 1}`;
       const chartEl = document.querySelector(containerId);
-
       if (chartEl) {
         debug(`ล้างข้อมูลกราฟ Horizontal Bar Chart ${i + 1}`);
         horizontalBarCharts[i].updateOptions({ series: [{ data: [] }] });
-
-        // เพิ่มข้อความ "ไม่พบข้อมูล" ถ้ายังไม่มี
         if (!chartEl.querySelector(".no-data")) {
           const noDataDiv = document.createElement("div");
           noDataDiv.className = "no-data";
           noDataDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i><div class="no-data-text">ไม่พบข้อมูลกล้อง (label = 'person')</div>`;
           chartEl.appendChild(noDataDiv);
         }
-
-        // อัปเดตหัวข้อให้แสดงว่าไม่พบข้อมูล
         const cardHeader = chartEl
           .closest(".card")
           ?.querySelector(".card-header .card-title");
@@ -1211,23 +1129,19 @@ function updateHorizontalBarCharts(data) {
   }
 }
 
-// ฟังก์ชันสำหรับดึงข้อมูล Activity Duration
-// ฟังก์ชันดึงข้อมูลระยะเวลาการอยู่ในโซนจาก API
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 17: ฟังก์ชันจัดการข้อมูลและกราฟกล่อง (Box Plot - Activity Duration Chart)
+// อธิบาย: ดึงและประมวลผลข้อมูลระยะเวลาคนอยู่ในโซน และอัปเดตกราฟกล่อง
+// ---------------------------------------------------------------------------------
 async function fetchActivityDurationData(params) {
   try {
-    // กำหนด compute_id เป็น 7 (People Counting) ถ้าไม่มีใน params
     const computeId = params.get("compute_id") || 7;
     let url = `${API_BASE_URL}/activity_ganttchart?compute_id=${computeId}`;
-
-    // ดึงวันที่เริ่มต้นและสิ้นสุดจาก params
     const startDate = params.get("start_date");
     const endDate = params.get("end_date");
-
-    // ถ้ามีวันที่ระบุใน params ให้เพิ่มใน URL
     if (startDate && endDate) {
       url += `&start_date=${startDate}&end_date=${endDate}`;
     } else {
-      // ถ้าไม่มีวันที่ระบุ ใช้ข้อมูลวันนี้ถึงวันพรุ่งนี้เป็นค่าเริ่มต้น
       const today = new Date();
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1235,18 +1149,15 @@ async function fetchActivityDurationData(params) {
         tomorrow.toISOString().split("T")[0]
       }`;
     }
-
-    // console.log("Fetching activity data from:", url); // ใช้สำหรับ debug
-    const response = await fetchWithTimeout(url, 5000); // เรียก API ด้วย timeout 5 วินาที
+    const response = await fetchWithTimeout(url, 5000);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json(); // คืนค่าข้อมูล JSON
+    return await response.json();
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการดึงข้อมูลระยะเวลา:", error);
-    return []; // คืนค่า array ว่างถ้ามีข้อผิดพลาด
+    return [];
   }
 }
 
-// ฟังก์ชันประมวลผลข้อมูลสำหรับสร้างกราฟ Box Plot
 function processActivityDurationData(data) {
   const cameraData = {
     "ICONIC-01": [],
@@ -1254,7 +1165,6 @@ function processActivityDurationData(data) {
     "ICONIC-03": [],
     "ICONIC-04": [],
   };
-
   data.forEach((item) => {
     if (
       item.name === "person" &&
@@ -1268,7 +1178,6 @@ function processActivityDurationData(data) {
         item.data.end_time
       );
       if (duration > 0) {
-        // Debug: แสดงข้อมูลระยะเวลาใน Console
         console.log(
           `Camera: ${item.data.source}, Duration: ${duration} นาที, Start: ${item.data.start_time}, End: ${item.data.end_time}`
         );
@@ -1291,7 +1200,6 @@ function processActivityDurationData(data) {
     "ICONIC-03": "Zone 3",
     "ICONIC-04": "Zone 4",
   };
-
   return Object.entries(cameraData).map(([camera, dataPoints]) => {
     const durations = dataPoints.map((d) => d.duration).sort((a, b) => a - b);
     const n = durations.length;
@@ -1328,13 +1236,11 @@ function processActivityDurationData(data) {
         endTime: d.endTime,
       })),
     };
-
     stats.average = durations.reduce((sum, val) => sum + val, 0) / n;
     return stats;
   });
 }
 
-// ฟังก์ชันคำนวณระยะเวลาเป็นนาที
 function calculateDurationInMinutes(start_time, end_time) {
   const start = new Date(start_time);
   const end = new Date(end_time);
@@ -1342,35 +1248,31 @@ function calculateDurationInMinutes(start_time, end_time) {
     console.warn(
       `วันที่ไม่ถูกต้อง: start_time=${start_time}, end_time=${end_time}`
     );
-    return 0; // หรือข้ามข้อมูลนี้ในลูป
+    return 0;
   }
   const durationSeconds = (end - start) / 1000;
   return Math.round(durationSeconds / 60);
 }
 
-// ฟังก์ชันอัปเดตกราฟ Box Plot
 function updateActivityDurationChart(data) {
-  // ประมวลผลข้อมูลจาก API
   const processedData = processActivityDurationData(data);
-
-  // กำหนดตัวเลือกสำหรับกราฟ Box Plot
   const options = {
     series: [
       {
         name: "ระยะเวลา",
         type: "boxPlot",
         data: processedData.map((d) => ({
-          x: d.zone, // ชื่อโซนในแกน X
-          y: [d.min, d.q1, d.median, d.q3, d.max], // ค่าสถิติสำหรับ Box Plot
-          camera: d.camera, // ใช้สำหรับกำหนดสี
+          x: d.zone,
+          y: [d.min, d.q1, d.median, d.q3, d.max],
+          camera: d.camera,
         })),
       },
     ],
     chart: {
       type: "boxPlot",
-      height: 400, // ความสูงของกราฟ
+      height: 400,
       toolbar: {
-        show: true, // แสดง toolbar
+        show: true,
         tools: {
           download: true,
           selection: true,
@@ -1392,7 +1294,6 @@ function updateActivityDurationChart(data) {
     },
     plotOptions: {
       boxPlot: {
-        // กำหนดสีของกล่องตามกล้อง
         colors: processedData.map((d) => ({
           upper: getCameraColor(d.camera),
           lower: getCameraColor(d.camera),
@@ -1401,17 +1302,16 @@ function updateActivityDurationChart(data) {
       },
     },
     xaxis: {
-      title: { text: "Zone", style: { fontSize: "14px" } }, // ชื่อแกน X
+      title: { text: "Zone", style: { fontSize: "14px" } },
       labels: {
-        style: { colors: processedData.map((d) => getCameraColor(d.camera)) }, // สีตามกล้อง
+        style: { colors: processedData.map((d) => getCameraColor(d.camera)) },
       },
     },
     yaxis: {
-      title: { text: "ระยะเวลา (นาที)", style: { fontSize: "14px" } }, // ชื่อแกน Y
-      min: 0, // ค่าเริ่มต้นของแกน Y
+      title: { text: "ระยะเวลา (นาที)", style: { fontSize: "14px" } },
+      min: 0,
     },
     tooltip: {
-      // กำหนด Tooltip แบบกำหนดเอง
       custom: ({ seriesIndex, dataPointIndex, w }) => {
         const data = processedData[dataPointIndex];
         return `
@@ -1432,11 +1332,9 @@ function updateActivityDurationChart(data) {
           </div>`;
       },
     },
-    colors: processedData.map((d) => getCameraColor(d.camera)), // สีของกราฟตามกล้อง
+    colors: processedData.map((d) => getCameraColor(d.camera)),
   };
-  
 
-  // ค้นหา element ที่จะแสดงกราฟ
   const chartEl = document.querySelector("#activity-duration-chart");
   if (!chartEl) {
     console.log("ไม่พบ element #activity-duration-chart");
@@ -1445,18 +1343,15 @@ function updateActivityDurationChart(data) {
 
   try {
     if (window.activityDurationChart) {
-      // ถ้ามีกราฟอยู่แล้ว อัปเดตด้วยข้อมูลใหม่
       console.log("อัปเดตกราฟ Activity Duration ด้วยข้อมูลใหม่");
       window.activityDurationChart.updateOptions(options);
     } else {
-      // ถ้ายังไม่มีกราฟ สร้างใหม่
       console.log("สร้างกราฟ Activity Duration ใหม่");
       window.activityDurationChart = new ApexCharts(chartEl, options);
       window.activityDurationChart.render();
     }
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการอัปเดตกราฟระยะเวลา:", error);
-    // แสดงข้อความแจ้งเตือนถ้ามีข้อผิดพลาด
     showToast(
       `เกิดข้อผิดพลาดในการอัปเดตกราฟระยะเวลา: ${error.message}`,
       "error"
@@ -1464,10 +1359,12 @@ function updateActivityDurationChart(data) {
   }
 }
 
-// ฟังก์ชัน Export ข้อมูลเป็น CSV (ไม่มีการเปลี่ยนแปลง แต่รวมไว้เพื่อความสมบูรณ์)
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 18: ฟังก์ชันส่งออกข้อมูล (Export Activity Data)
+// อธิบาย: ส่งออกข้อมูลระยะเวลาคนอยู่ในโซนเป็นไฟล์ CSV
+// ---------------------------------------------------------------------------------
 function exportActivityData(data, format = "csv") {
   const processedData = processActivityDurationData(data);
-
   if (format === "csv") {
     let csv = "Zone,Count,Min,Q1,Median,Q3,Max\n";
     processedData.forEach((d) => {
@@ -1486,24 +1383,36 @@ function exportActivityData(data, format = "csv") {
   }
 }
 
-// การเรียกใช้งาน (ตัวอย่างการผูกกับหน้า Dashboard)
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 19: การเริ่มต้นเมื่อหน้าโหลด (DOMContentLoaded)
+// อธิบาย: ตั้งค่าเริ่มต้นและเรียกใช้งานฟังก์ชันต่างๆ เมื่อหน้าเว็บโหลด
+// ---------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  // ตัวอย่างการเรียกข้อมูลและอัปเดตกราฟเมื่อหน้าโหลด
+  // คำนวณวันที่ปัจจุบันและวันพรุ่งนี้
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  // แปลงวันที่เป็นรูปแบบ YYYY-MM-DD
+  const startDateStr = today.toISOString().split("T")[0]; // วันที่ปัจจุบัน
+  const endDateStr = tomorrow.toISOString().split("T")[0]; // วันพรุ่งนี้
+
+  // ตั้งค่าพารามิเตอร์สำหรับการดึงข้อมูล โดยใช้ start_date และ end_date จากวันที่ปัจจุบันและวันพรุ่งนี้
   const sampleParams = new URLSearchParams({
     compute_id: "7",
-    start_date: "2025-03-02",
-    end_date: "2025-03-03",
+    start_date: startDateStr, // เปลี่ยนเป็นวันที่ปัจจุบัน
+    end_date: endDateStr, // เปลี่ยนเป็นวันพรุ่งนี้
   });
 
+  // เรียกข้อมูลสำหรับกราฟกล่อง (Box Plot) โดยใช้พารามิเตอร์วันที่ใหม่
   fetchActivityDurationData(sampleParams)
     .then((data) => {
-      updateActivityDurationChart(data); // อัปเดตกราฟด้วยข้อมูลที่ดึงมา
+      updateActivityDurationChart(data); // อัปเดตกราฟกล่องเมื่อหน้าโหลด
     })
     .catch((error) => {
       console.error("ไม่สามารถดึงข้อมูลได้:", error);
     });
 
-  // เพิ่ม Event Listener สำหรับปุ่ม Export (ถ้ามี)
   const exportBtn = document.getElementById("export-activity-data");
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
@@ -1520,8 +1429,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ฟังก์ชันจัดการ Modal
-// จัดการการแสดงภาพโซนใน Modal เมื่อคลิก
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 20: ฟังก์ชันจัดการ Modal, Form และ Toast
+// อธิบาย: จัดการการแสดง Modal, การส่งฟอร์ม, และการแจ้งเตือน Toast
+// ---------------------------------------------------------------------------------
 function initModal() {
   const imageModal = document.getElementById("imageModal");
   if (imageModal) {
@@ -1536,22 +1447,21 @@ function initModal() {
       const modalTitle = document.querySelector("#imageModal .modal-title");
 
       if (modalImage && imgSrc) modalImage.src = imgSrc;
-
       if (modalTitle) {
         let zoneColor = "";
         switch (zone) {
           case "1":
             zoneColor = "#4e95f4";
-            break; // สีฟ้า
+            break;
           case "2":
             zoneColor = "#4cd3a5";
-            break; // สีเขียว
+            break;
           case "3":
             zoneColor = "#ffc107";
-            break; // สีเหลือง
+            break;
           case "4":
             zoneColor = "#ff6b6b";
-            break; // สีแดง
+            break;
         }
         let titleText = title ? ` ${title}` : "";
         modalTitle.innerHTML = `<span style="color:${zoneColor}">Zone ${zone}${titleText}</span> - กล้อง ${camera}`;
@@ -1560,8 +1470,6 @@ function initModal() {
   }
 }
 
-// ฟังก์ชันจัดการ Form
-// จัดการการส่งฟอร์มค้นหาและการอัปเดตข้อมูล
 function initFormHandlers() {
   const form = document.getElementById("search-form");
   if (!form) {
@@ -1573,12 +1481,11 @@ function initFormHandlers() {
   document
     .getElementById("compute_id")
     .addEventListener("change", loadCamerasAndZones);
-
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    stopRealtimeUpdate(); // หยุดการอัปเดตแบบ Realtime ก่อนโหลดข้อมูลใหม่
+    stopRealtimeUpdate();
     loadData()
-      .then(() => startRealtimeUpdate()) // เริ่มการอัปเดตแบบ Realtime หลังโหลดข้อมูลสำเร็จ
+      .then(() => startRealtimeUpdate())
       .catch((error) => console.error("Form submit failed:", error));
   });
 
@@ -1588,20 +1495,17 @@ function initFormHandlers() {
 
   const realtimeToggle = document.getElementById("realtime-toggle");
   if (realtimeToggle) {
-    realtimeToggle.checked = true; // ตั้งค่าเริ่มต้นให้เปิดการอัปเดตแบบ Realtime
+    realtimeToggle.checked = true;
     realtimeToggle.addEventListener("change", function () {
-      if (this.checked) startRealtimeUpdate(); // เริ่มการอัปเดตเมื่อเปิดสวิตช์
-      else stopRealtimeUpdate(); // หยุดการอัปเดตเมื่อปิดสวิตช์
+      if (this.checked) startRealtimeUpdate();
+      else stopRealtimeUpdate();
     });
   }
 }
 
-// ฟังก์ชันจัดการฟิลด์วันที่แบบ custom
-// แสดงหรือซ่อนฟิลด์วันที่ตามตัวเลือก "กำหนดเอง"
 function toggleDateFields() {
   const dateRange = document.getElementById("date_range");
   const dateCustomFields = document.querySelectorAll(".date-custom");
-
   if (!dateRange) {
     debug("ไม่พบ element #date_range");
     return;
@@ -1612,8 +1516,6 @@ function toggleDateFields() {
   );
 }
 
-// ฟังก์ชันแสดง Toast
-// แสดงข้อความแจ้งเตือนแบบลอยบนหน้าจอ
 function showToast(message, type = "info") {
   let toastContainer = document.getElementById("toast-container");
   if (!toastContainer) {
@@ -1628,20 +1530,19 @@ function showToast(message, type = "info") {
 
   let bgColor = "bg-info";
   let icon = "bi-info-circle";
-
   switch (type) {
     case "success":
       bgColor = "bg-success";
       icon = "bi-check-circle";
-      break; // แจ้งเตือนสำเร็จ
+      break;
     case "warning":
       bgColor = "bg-warning";
       icon = "bi-exclamation-triangle";
-      break; // แจ้งเตือนเตือน
+      break;
     case "error":
       bgColor = "bg-danger";
       icon = "bi-x-circle";
-      break; // แจ้งเตือนข้อผิดพลาด
+      break;
   }
 
   const toast = document.createElement("div");
@@ -1649,9 +1550,7 @@ function showToast(message, type = "info") {
   toast.setAttribute("role", "alert");
   toast.setAttribute("aria-live", "assertive");
   toast.setAttribute("aria-atomic", "true");
-
   toast.innerHTML = `<div class="d-flex"><div class="toast-body"><i class="bi ${icon} me-2"></i> ${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-
   toastContainer.appendChild(toast);
   const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 3000 });
   bsToast.show();
@@ -1663,8 +1562,10 @@ function showToast(message, type = "info") {
   });
 }
 
-// ฟังก์ชันตั้งค่า Responsive Listener
-// ปรับขนาดกราฟตามขนาดหน้าจอเมื่อมีการเปลี่ยนแปลง
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 21: ฟังก์ชันจัดการ Responsive Listener
+// อธิบาย: ปรับขนาดกราฟ Bar Chart เมื่อหน้าจอเปลี่ยนขนาด
+// ---------------------------------------------------------------------------------
 function setupResponsiveListener() {
   if (typeof _ === "undefined") {
     console.error("Lodash ไม่ถูกโหลด โปรดตรวจสอบการรวมไฟล์ lodash.min.js");
@@ -1681,11 +1582,13 @@ function setupResponsiveListener() {
   );
 }
 
-// เริ่มต้นเมื่อหน้าเว็บโหลด
-// เริ่มการทำงานของ Dashboard เมื่อหน้าเว็บโหลดสำเร็จ
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 22: การเริ่มต้น Dashboard เมื่อหน้าโหลด (DOMContentLoaded)
+// อธิบาย: ตั้งค่าเริ่มต้นทั้งหมดและเรียกโหลดข้อมูลเมื่อหน้าเว็บโหลด
+// ---------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  initModal(); // เริ่มการทำงานของ Modal
-  initFormHandlers(); // เริ่มการทำงานของฟอร์ม
+  initModal();
+  initFormHandlers();
 
   const form = document.getElementById("search-form");
   if (!form) {
@@ -1698,32 +1601,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const computeIdSelect = document.getElementById("compute_id");
   const sourceNameSelect = document.getElementById("source_name");
 
-  if (dateRangeSelect) dateRangeSelect.value = "today"; // ตั้งค่าเริ่มต้นเป็น "วันนี้"
-  if (computeIdSelect) computeIdSelect.value = "7"; // ตั้งค่าเริ่มต้นเป็น People Counting
-  if (sourceNameSelect) sourceNameSelect.value = ""; // ตั้งค่าเริ่มต้นเป็น "ทั้งหมด"
+  if (dateRangeSelect) dateRangeSelect.value = "today";
+  if (computeIdSelect) computeIdSelect.value = "7";
+  if (sourceNameSelect) sourceNameSelect.value = "";
 
   const today = calculateDates("today");
   const startDateInput = form.querySelector('input[name="start_date"]');
   const endDateInput = form.querySelector('input[name="end_date"]');
+  if (startDateInput) startDateInput.value = today.startDate;
+  if (endDateInput) endDateInput.value = today.endDate;
 
-  if (startDateInput) startDateInput.value = today.startDate; // ตั้งค่าเริ่มต้นวันที่เริ่มต้น
-  if (endDateInput) endDateInput.value = today.endDate; // ตั้งค่าเริ่มต้นวันที่สิ้นสุด
+  loadCamerasAndZones().catch((error) => {
+    console.error("Failed to load cameras/zones:", error);
+    showToast("ไม่สามารถโหลดข้อมูลกล้อง/โซนได้: " + error.message, "error");
+  });
 
-  loadCamerasAndZones() // โหลดข้อมูลกล้องและโซนจาก API
-    .catch((error) => {
-      console.error("Failed to load cameras/zones:", error);
-      showToast("ไม่สามารถโหลดข้อมูลกล้อง/โซนได้: " + error.message, "error");
-    });
-
-  updateCameraSelect(); // อัปเดต Dropdown สำหรับ Time Series Chart
+  updateCameraSelect();
 
   const cameraSelect = document.getElementById("cameraSelectTimeSeries");
   if (cameraSelect) {
     cameraSelect.addEventListener("change", function () {
-      selectedCameraForTimeSeries = this.value; // อัปเดตกล้องที่เลือก
+      selectedCameraForTimeSeries = this.value;
       if (currentData.length > 0) {
         debug("เปลี่ยนกล้องใน Dropdown, อัปเดตกราฟ Time Series  ");
-        updateTimeSeriesChart(currentData); // อัปเดตกราฟตามกล้องที่เลือก
+        updateTimeSeriesChart(currentData);
       }
     });
   } else {
@@ -1731,9 +1632,8 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("ไม่พบ Dropdown สำหรับเลือกกล้อง", "error");
   }
 
-  toggleDateFields(); // แสดง/ซ่อนฟิลด์วันที่ตามตัวเลือก
+  toggleDateFields();
 
-  // เรียกโหลดข้อมูลเริ่มต้นและเริ่มการอัปเดตแบบ Realtime
   loadData()
     .then(() => {
       debug("โหลดข้อมูลเริ่มต้นสำเร็จ, เริ่ม Realtime Update  ");
@@ -1744,14 +1644,13 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("ไม่สามารถโหลดข้อมูลเริ่มต้นได้: " + error.message, "error");
     });
 
-  // เพิ่ม Event Listener สำหรับปุ่ม Export
   const exportBtn = document.getElementById("export-activity-data");
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
       if (currentSearchParams) {
         debug("เริ่มการส่งออกข้อมูล Activity Duration");
         fetchActivityDurationData(new URLSearchParams(currentSearchParams))
-          .then((data) => exportActivityData(data)) // ส่งออกข้อมูลเป็น CSV
+          .then((data) => exportActivityData(data))
           .catch((error) => {
             console.error("Error exporting data:", error);
             showToast(
@@ -1766,11 +1665,13 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("ไม่พบปุ่มส่งออกข้อมูล", "warning");
   }
 
-  setupResponsiveListener(); // เริ่มการตรวจสอบขนาดหน้าจอ
+  setupResponsiveListener();
 });
 
-// เหตุการณ์เมื่อหน้าเว็บและทรัพยากรทั้งหมดโหลดเสร็จ
-// ซ่อน Loading Overlay เมื่อโหลดสำเร็จ
+// ---------------------------------------------------------------------------------
+// ส่วนที่ 23: การจัดการเมื่อหน้าโหลดเสร็จสมบูรณ์ (Window Load)
+// อธิบาย: ซ่อน Loading Overlay เมื่อหน้าเว็บและทรัพยากรโหลดเสร็จ
+// ---------------------------------------------------------------------------------
 window.addEventListener("load", function () {
   debug("หน้าเว็บและทรัพยากรทั้งหมดโหลดเสร็จสมบูรณ์");
   hideLoading();
